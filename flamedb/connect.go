@@ -32,17 +32,24 @@ func GetSettings() Settings {
 	var sslMode string
 
 	flag.StringVar(&s.Name, "db-name", "", "DB name")
-	flag.StringVar(&s.User, "db-user", "", "DB user")
+	flag.StringVar(&s.User, "db-user", "postgres", "DB user")
 	flag.StringVar(&s.Password, "db-password", "", "DB password")
-	flag.StringVar(&s.Host, "db-host", "", "DB host address")
+	flag.StringVar(&s.Host, "db-host", "127.0.0.1", "DB host address")
 	flag.IntVar(&s.Port, "db-port", DefaultPort, "DB port")
-	flag.StringVar(&sslMode, "db-ssl-mode", "", "DB SSL mode")
+	flag.StringVar(&sslMode, "db-ssl-mode", "disable", "DB SSL mode")
 	flag.StringVar(&s.SSLRootCert, "db-ssl-root-cert", "", "DB SSL root certificate")
 	flag.StringVar(&s.SSLCert, "db-ssl-cert", "", "DB SSL client certificate")
 	flag.StringVar(&s.SSLKey, "db-ssl-key", "", "DB SSL client key")
 	flag.Parse()
 
 	s.SSLMode = SSLMode(sslMode)
+	switch s.SSLMode {
+	case SSLModeDisabled:
+	case SSLModeRequired:
+	case SSLModeVerifyCA:
+	default:
+		panic(fmt.Sprintf("Unknown database SSL mode: %s", sslMode))
+	}
 
 	return s
 }
@@ -66,21 +73,23 @@ const (
 func Connect(s Settings) (*gorm.DB, error) {
 
 	if s.Host == "" {
-		s.Host = "127.0.0.1"
-	}
-	if s.Name == "" {
-		return nil, errors.New("Must specify database name")
+		return nil, errors.New("Must specify database host")
 	}
 	if s.User == "" {
 		return nil, errors.New("Must specify database user")
 	}
-	if s.Password == "" {
-		return nil, errors.New("Must specify database password")
+
+	// Default the database name to the username
+	if s.Name == "" {
+		s.Name = s.User
 	}
 
-	args := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s host=%s",
-		s.User, s.Password, s.Name, s.SSLMode, s.Host)
+	args := fmt.Sprintf("user=%s dbname=%s sslmode=%s host=%s",
+		s.User, s.Name, s.SSLMode, s.Host)
 
+	if s.Password != "" {
+		args += fmt.Sprintf(" password=%s", s.Password)
+	}
 	if s.SSLRootCert != "" {
 		args += fmt.Sprintf(" sslrootcert=%s", s.SSLRootCert)
 	}

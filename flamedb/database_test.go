@@ -2,6 +2,7 @@ package flamedb
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"math/rand"
 	"sort"
@@ -9,9 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jinzhu/gorm/dialects/postgres"
-
 	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,19 +25,14 @@ var (
 func init() {
 	rand.Seed(time.Now().UnixNano())
 
+	settings := GetSettings()
+	fmt.Printf("Database settings: %+v\n", settings)
+
 	var err error
-	testDB, err = Connect(Settings{
-		Host:     "127.0.0.1",
-		Port:     5432,
-		User:     "test",
-		Password: "test",
-		Name:     "test",
-		SSLMode:  SSLModeDisabled,
-	})
+	testDB, err = Connect(settings)
 	if err != nil {
 		panic(err)
 	}
-
 	if err := testDB.DropTableIfExists(&Record{}).Error; err != nil {
 		panic(err)
 	}
