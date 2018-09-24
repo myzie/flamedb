@@ -26,7 +26,7 @@ type RecordInput struct {
 
 	// properties
 	// Required: true
-	Properties map[string]string `json:"properties"`
+	Properties map[string]interface{} `json:"properties"`
 }
 
 // Validate validates this record input
@@ -59,6 +59,10 @@ func (m *RecordInput) validatePath(formats strfmt.Registry) error {
 }
 
 func (m *RecordInput) validateProperties(formats strfmt.Registry) error {
+
+	if err := validate.Required("properties", "body", m.Properties); err != nil {
+		return err
+	}
 
 	return nil
 }

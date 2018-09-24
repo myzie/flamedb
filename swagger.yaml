@@ -176,7 +176,7 @@ definitions:
       properties:
         type: object
         additionalProperties:
-          type: string
+          type: object
   RecordOutput:
     type: "object"
     required:
@@ -206,7 +206,7 @@ definitions:
       properties:
         type: object
         additionalProperties:
-          type: string
+          type: object
   QueryResult:
     type: object
     required:

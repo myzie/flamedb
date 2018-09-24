@@ -290,7 +290,7 @@ func init() {
         "properties": {
           "type": "object",
           "additionalProperties": {
-            "type": "string"
+            "type": "object"
           }
         }
       }
@@ -326,7 +326,7 @@ func init() {
         "properties": {
           "type": "object",
           "additionalProperties": {
-            "type": "string"
+            "type": "object"
           }
         },
         "updated_at": {
@@ -619,7 +619,7 @@ func init() {
         "properties": {
           "type": "object",
           "additionalProperties": {
-            "type": "string"
+            "type": "object"
           }
         }
       }
@@ -655,7 +655,7 @@ func init() {
         "properties": {
           "type": "object",
           "additionalProperties": {
-            "type": "string"
+            "type": "object"
           }
         },
         "updated_at": {

@@ -39,7 +39,7 @@ type RecordOutput struct {
 
 	// properties
 	// Required: true
-	Properties map[string]string `json:"properties"`
+	Properties map[string]interface{} `json:"properties"`
 
 	// updated at
 	// Required: true
@@ -146,6 +146,10 @@ func (m *RecordOutput) validatePath(formats strfmt.Registry) error {
 }
 
 func (m *RecordOutput) validateProperties(formats strfmt.Registry) error {
+
+	if err := validate.Required("properties", "body", m.Properties); err != nil {
+		return err
+	}
 
 	return nil
 }
