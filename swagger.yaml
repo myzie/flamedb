@@ -7,7 +7,6 @@ host: "127.0.0.1"
 basePath: "/api"
 tags: []
 schemes:
-- "https"
 - "http"
 securityDefinitions:
   flamedb_auth:

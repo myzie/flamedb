@@ -7,7 +7,6 @@ FlameDB HTTP API
 
     Schemes:
       http
-      https
     Host: 127.0.0.1
     BasePath: /api
     Version: 1.0.0
