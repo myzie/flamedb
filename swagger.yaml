@@ -3,7 +3,7 @@ info:
   description: "FlameDB HTTP API"
   version: "1.0.0"
   title: "FlameDB HTTP API"
-host: ""
+host: "127.0.0.1"
 basePath: "/api"
 tags: []
 schemes:
@@ -208,3 +208,12 @@ definitions:
         type: object
         additionalProperties:
           type: string
+  QueryResult:
+    type: object
+    required:
+    - items
+    properties:
+      items:
+        type: array
+        items:
+          $ref: "#/definitions/RecordOutput"
