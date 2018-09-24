@@ -1,0 +1,210 @@
+swagger: "2.0"
+info:
+  description: "FlameDB HTTP API"
+  version: "1.0.0"
+  title: "FlameDB HTTP API"
+host: ""
+basePath: "/api"
+tags: []
+schemes:
+- "https"
+- "http"
+securityDefinitions:
+  flamedb_auth:
+    type: "apiKey"
+    name: "api_key"
+    in: "header"
+paths:
+  /records:
+    post:
+      tags:
+      - "records"
+      summary: "Create a new record"
+      description: ""
+      operationId: "createRecord"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: body
+        name: body
+        description: "Record to be created"
+        required: true
+        schema:
+          $ref: "#/definitions/RecordInput"
+      responses:
+        200:
+          description: "Successfully created"
+        400:
+          description: "Validation exception"
+      security:
+      - flamedb_auth: []
+    get:
+      tags:
+      - "records"
+      summary: "List records"
+      description: ""
+      operationId: "listRecords"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: offset
+        in: query
+        type: integer
+        format: int64
+        minimum: 0
+      - name: limit
+        in: query
+        type: integer
+        format: int64
+        minimum: 0
+        maximum: 1000
+      - name: parent
+        in: query
+        type: string
+      - name: prefix
+        in: query
+        type: string
+      - name: orderBy
+        in: query
+        type: string
+      - name: orderByDesc
+        in: query
+        type: boolean
+      - name: orderByProperty
+        in: query
+        type: string
+      - name: orderByPropertyDesc
+        in: query
+        type: boolean
+      responses:
+        200:
+          description: "Successful query"
+          schema:
+            $ref: "#/definitions/QueryResult"
+      security:
+      - flamedb_auth: []
+  /records/{recordId}:
+    get:
+      tags:
+      - "records"
+      summary: "Find record by ID"
+      description: ""
+      operationId: "getRecord"
+      produces:
+      - "application/json"
+      parameters:
+      - name: recordId
+        in: path
+        description: "ID of record to return"
+        required: true
+        type: string
+      responses:
+        200:
+          description: "The retrieved record"
+          schema:
+            $ref: "#/definitions/RecordOutput"
+        404:
+          description: "Record not found"
+      security:
+      - flamedb_auth: []
+    put:
+      tags:
+      - "records"
+      summary: "Update an existing record"
+      description: ""
+      operationId: "updateRecord"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - name: recordId
+        in: path
+        description: "ID of record to be updated"
+        required: true
+        type: string
+      - name: record
+        in: body
+        description: "Record to be updated"
+        required: true
+        schema:
+          $ref: "#/definitions/RecordInput"
+      responses:
+        200:
+          description: "Successfully updated"
+          schema:
+            $ref: "#/definitions/RecordOutput"
+        400:
+          description: "Validation exception"
+        404:
+          description: "Record not found"
+      security:
+      - flamedb_auth: []
+    delete:
+      tags:
+      - "records"
+      summary: "Deletes a record"
+      description: ""
+      operationId: "deleteRecord"
+      produces:
+      - "application/json"
+      parameters:
+      - name: recordId
+        in: path
+        description: "ID of record to be updated"
+        required: true
+        type: string
+      responses:
+        404:
+          description: "Record not found"
+      security:
+      - flamedb_auth: []
+definitions:
+  RecordInput:
+    type: object
+    required:
+    - path
+    - properties
+    properties:
+      id:
+        type: string
+      path:
+        type: string
+      properties:
+        type: object
+        additionalProperties:
+          type: string
+  RecordOutput:
+    type: "object"
+    required:
+    - id
+    - path
+    - parent
+    - created_at
+    - created_by
+    - updated_at
+    - updated_by
+    - properties
+    properties:
+      id:
+        type: string
+      path:
+        type: string
+      parent:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      updated_at:
+        type: string
+      updated_by:
+        type: string
+      properties:
+        type: object
+        additionalProperties:
+          type: string
