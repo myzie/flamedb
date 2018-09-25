@@ -1,7 +1,8 @@
 
 .PHONY: all
 all:
-	go build -v ./cmd/flamedb-server
+	go get -v ./...
+	go build -v .
 
 .PHONY: generate
 generate:
