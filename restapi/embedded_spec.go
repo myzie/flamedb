@@ -341,7 +341,7 @@ func init() {
   "securityDefinitions": {
     "flamedb_auth": {
       "type": "apiKey",
-      "name": "api_key",
+      "name": "Authorization",
       "in": "header"
     }
   }
@@ -670,7 +670,7 @@ func init() {
   "securityDefinitions": {
     "flamedb_auth": {
       "type": "apiKey",
-      "name": "api_key",
+      "name": "Authorization",
       "in": "header"
     }
   }

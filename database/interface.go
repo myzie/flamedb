@@ -1,4 +1,4 @@
-package flamedb
+package database
 
 // Query used to list records
 type Query struct {

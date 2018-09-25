@@ -10,9 +10,9 @@ schemes:
 - "http"
 securityDefinitions:
   flamedb_auth:
-    type: "apiKey"
-    name: "api_key"
-    in: "header"
+    type: apiKey
+    name: Authorization
+    in: header
 paths:
   /records:
     post:

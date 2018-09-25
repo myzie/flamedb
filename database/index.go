@@ -1,4 +1,4 @@
-package flamedb
+package database
 
 // PostgresIndex is a record in PG describing a table index
 type PostgresIndex struct {

@@ -1,4 +1,4 @@
-package flamedb
+package database
 
 import (
 	"math/rand"

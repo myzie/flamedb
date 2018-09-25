@@ -55,9 +55,9 @@ func NewFlamedbAPI(spec *loads.Document) *FlamedbAPI {
 			return middleware.NotImplemented("operation RecordsUpdateRecord has not yet been implemented")
 		}),
 
-		// Applies when the "api_key" header is set
+		// Applies when the "Authorization" header is set
 		FlamedbAuthAuth: func(token string) (interface{}, error) {
-			return nil, errors.NotImplemented("api key auth (flamedb_auth) api_key from header param [api_key] has not yet been implemented")
+			return nil, errors.NotImplemented("api key auth (flamedb_auth) Authorization from header param [Authorization] has not yet been implemented")
 		},
 
 		// default authorizer is authorized meaning no requests are blocked
@@ -94,7 +94,7 @@ type FlamedbAPI struct {
 	JSONProducer runtime.Producer
 
 	// FlamedbAuthAuth registers a function that takes a token and returns a principal
-	// it performs authentication based on an api key api_key provided in the header
+	// it performs authentication based on an api key Authorization provided in the header
 	FlamedbAuthAuth func(string) (interface{}, error)
 
 	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
@@ -174,7 +174,7 @@ func (o *FlamedbAPI) Validate() error {
 	}
 
 	if o.FlamedbAuthAuth == nil {
-		unregistered = append(unregistered, "APIKeyAuth")
+		unregistered = append(unregistered, "AuthorizationAuth")
 	}
 
 	if o.RecordsCreateRecordHandler == nil {
