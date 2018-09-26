@@ -6,7 +6,7 @@ all:
 
 .PHONY: generate
 generate:
-	swagger generate server -A flamedb -f ./swagger.yaml
+	swagger generate server -A flamedb -P models.Principal -f ./swagger.yaml
 
 .PHONY: install_swagger
 install_swagger:

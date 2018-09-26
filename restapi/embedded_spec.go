@@ -260,6 +260,23 @@ func init() {
     }
   },
   "definitions": {
+    "Principal": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
     "QueryResult": {
       "type": "object",
       "required": [
@@ -589,6 +606,23 @@ func init() {
     }
   },
   "definitions": {
+    "Principal": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
     "QueryResult": {
       "type": "object",
       "required": [

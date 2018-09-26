@@ -9,19 +9,21 @@ import (
 	"net/http"
 
 	middleware "github.com/go-openapi/runtime/middleware"
+
+	models "github.com/myzie/flamedb/models"
 )
 
 // DeleteRecordHandlerFunc turns a function with the right signature into a delete record handler
-type DeleteRecordHandlerFunc func(DeleteRecordParams, interface{}) middleware.Responder
+type DeleteRecordHandlerFunc func(DeleteRecordParams, *models.Principal) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn DeleteRecordHandlerFunc) Handle(params DeleteRecordParams, principal interface{}) middleware.Responder {
+func (fn DeleteRecordHandlerFunc) Handle(params DeleteRecordParams, principal *models.Principal) middleware.Responder {
 	return fn(params, principal)
 }
 
 // DeleteRecordHandler interface for that can handle valid delete record params
 type DeleteRecordHandler interface {
-	Handle(DeleteRecordParams, interface{}) middleware.Responder
+	Handle(DeleteRecordParams, *models.Principal) middleware.Responder
 }
 
 // NewDeleteRecord creates a new http.Handler for the delete record operation
@@ -54,9 +56,9 @@ func (o *DeleteRecord) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		r = aCtx
 	}
-	var principal interface{}
+	var principal *models.Principal
 	if uprinc != nil {
-		principal = uprinc
+		principal = uprinc.(*models.Principal) // this is really a models.Principal, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

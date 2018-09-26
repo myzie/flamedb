@@ -20,6 +20,8 @@ import (
 	"github.com/go-openapi/swag"
 
 	"github.com/myzie/flamedb/restapi/operations/records"
+
+	models "github.com/myzie/flamedb/models"
 )
 
 // NewFlamedbAPI creates a new Flamedb instance
@@ -39,24 +41,24 @@ func NewFlamedbAPI(spec *loads.Document) *FlamedbAPI {
 		BearerAuthenticator: security.BearerAuth,
 		JSONConsumer:        runtime.JSONConsumer(),
 		JSONProducer:        runtime.JSONProducer(),
-		RecordsCreateRecordHandler: records.CreateRecordHandlerFunc(func(params records.CreateRecordParams, principal interface{}) middleware.Responder {
+		RecordsCreateRecordHandler: records.CreateRecordHandlerFunc(func(params records.CreateRecordParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation RecordsCreateRecord has not yet been implemented")
 		}),
-		RecordsDeleteRecordHandler: records.DeleteRecordHandlerFunc(func(params records.DeleteRecordParams, principal interface{}) middleware.Responder {
+		RecordsDeleteRecordHandler: records.DeleteRecordHandlerFunc(func(params records.DeleteRecordParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation RecordsDeleteRecord has not yet been implemented")
 		}),
-		RecordsGetRecordHandler: records.GetRecordHandlerFunc(func(params records.GetRecordParams, principal interface{}) middleware.Responder {
+		RecordsGetRecordHandler: records.GetRecordHandlerFunc(func(params records.GetRecordParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation RecordsGetRecord has not yet been implemented")
 		}),
-		RecordsListRecordsHandler: records.ListRecordsHandlerFunc(func(params records.ListRecordsParams, principal interface{}) middleware.Responder {
+		RecordsListRecordsHandler: records.ListRecordsHandlerFunc(func(params records.ListRecordsParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation RecordsListRecords has not yet been implemented")
 		}),
-		RecordsUpdateRecordHandler: records.UpdateRecordHandlerFunc(func(params records.UpdateRecordParams, principal interface{}) middleware.Responder {
+		RecordsUpdateRecordHandler: records.UpdateRecordHandlerFunc(func(params records.UpdateRecordParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation RecordsUpdateRecord has not yet been implemented")
 		}),
 
 		// Applies when the "Authorization" header is set
-		FlamedbAuthAuth: func(token string) (interface{}, error) {
+		FlamedbAuthAuth: func(token string) (*models.Principal, error) {
 			return nil, errors.NotImplemented("api key auth (flamedb_auth) Authorization from header param [Authorization] has not yet been implemented")
 		},
 
@@ -95,7 +97,7 @@ type FlamedbAPI struct {
 
 	// FlamedbAuthAuth registers a function that takes a token and returns a principal
 	// it performs authentication based on an api key Authorization provided in the header
-	FlamedbAuthAuth func(string) (interface{}, error)
+	FlamedbAuthAuth func(string) (*models.Principal, error)
 
 	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
 	APIAuthorizer runtime.Authorizer
@@ -218,7 +220,9 @@ func (o *FlamedbAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) m
 
 		case "flamedb_auth":
 
-			result[name] = o.APIKeyAuthenticator(scheme.Name, scheme.In, o.FlamedbAuthAuth)
+			result[name] = o.APIKeyAuthenticator(scheme.Name, scheme.In, func(token string) (interface{}, error) {
+				return o.FlamedbAuthAuth(token)
+			})
 
 		}
 	}

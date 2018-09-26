@@ -13,9 +13,11 @@ import (
 
 	"github.com/myzie/flamedb/restapi/operations"
 	"github.com/myzie/flamedb/restapi/operations/records"
+
+	models "github.com/myzie/flamedb/models"
 )
 
-//go:generate swagger generate server --target .. --name flamedb --spec ../swagger.yaml
+//go:generate swagger generate server --target .. --name flamedb --spec ../swagger.yaml --principal models.Principal
 
 func configureFlags(api *operations.FlamedbAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
@@ -35,9 +37,9 @@ func configureAPI(api *operations.FlamedbAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	// Applies when the "api_key" header is set
-	api.FlamedbAuthAuth = func(token string) (interface{}, error) {
-		return nil, errors.NotImplemented("api key auth (flamedb_auth) api_key from header param [api_key] has not yet been implemented")
+	// Applies when the "Authorization" header is set
+	api.FlamedbAuthAuth = func(token string) (*models.Principal, error) {
+		return nil, errors.NotImplemented("api key auth (flamedb_auth) Authorization from header param [Authorization] has not yet been implemented")
 	}
 
 	// Set your custom authorizer if needed. Default one is security.Authorized()
@@ -46,19 +48,19 @@ func configureAPI(api *operations.FlamedbAPI) http.Handler {
 	// Example:
 	// api.APIAuthorizer = security.Authorized()
 
-	api.RecordsCreateRecordHandler = records.CreateRecordHandlerFunc(func(params records.CreateRecordParams, principal interface{}) middleware.Responder {
+	api.RecordsCreateRecordHandler = records.CreateRecordHandlerFunc(func(params records.CreateRecordParams, principal *models.Principal) middleware.Responder {
 		return middleware.NotImplemented("operation records.CreateRecord has not yet been implemented")
 	})
-	api.RecordsDeleteRecordHandler = records.DeleteRecordHandlerFunc(func(params records.DeleteRecordParams, principal interface{}) middleware.Responder {
+	api.RecordsDeleteRecordHandler = records.DeleteRecordHandlerFunc(func(params records.DeleteRecordParams, principal *models.Principal) middleware.Responder {
 		return middleware.NotImplemented("operation records.DeleteRecord has not yet been implemented")
 	})
-	api.RecordsGetRecordHandler = records.GetRecordHandlerFunc(func(params records.GetRecordParams, principal interface{}) middleware.Responder {
+	api.RecordsGetRecordHandler = records.GetRecordHandlerFunc(func(params records.GetRecordParams, principal *models.Principal) middleware.Responder {
 		return middleware.NotImplemented("operation records.GetRecord has not yet been implemented")
 	})
-	api.RecordsListRecordsHandler = records.ListRecordsHandlerFunc(func(params records.ListRecordsParams, principal interface{}) middleware.Responder {
+	api.RecordsListRecordsHandler = records.ListRecordsHandlerFunc(func(params records.ListRecordsParams, principal *models.Principal) middleware.Responder {
 		return middleware.NotImplemented("operation records.ListRecords has not yet been implemented")
 	})
-	api.RecordsUpdateRecordHandler = records.UpdateRecordHandlerFunc(func(params records.UpdateRecordParams, principal interface{}) middleware.Responder {
+	api.RecordsUpdateRecordHandler = records.UpdateRecordHandlerFunc(func(params records.UpdateRecordParams, principal *models.Principal) middleware.Responder {
 		return middleware.NotImplemented("operation records.UpdateRecord has not yet been implemented")
 	})
 

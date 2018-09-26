@@ -9,19 +9,21 @@ import (
 	"net/http"
 
 	middleware "github.com/go-openapi/runtime/middleware"
+
+	models "github.com/myzie/flamedb/models"
 )
 
 // ListRecordsHandlerFunc turns a function with the right signature into a list records handler
-type ListRecordsHandlerFunc func(ListRecordsParams, interface{}) middleware.Responder
+type ListRecordsHandlerFunc func(ListRecordsParams, *models.Principal) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn ListRecordsHandlerFunc) Handle(params ListRecordsParams, principal interface{}) middleware.Responder {
+func (fn ListRecordsHandlerFunc) Handle(params ListRecordsParams, principal *models.Principal) middleware.Responder {
 	return fn(params, principal)
 }
 
 // ListRecordsHandler interface for that can handle valid list records params
 type ListRecordsHandler interface {
-	Handle(ListRecordsParams, interface{}) middleware.Responder
+	Handle(ListRecordsParams, *models.Principal) middleware.Responder
 }
 
 // NewListRecords creates a new http.Handler for the list records operation
@@ -54,9 +56,9 @@ func (o *ListRecords) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		r = aCtx
 	}
-	var principal interface{}
+	var principal *models.Principal
 	if uprinc != nil {
-		principal = uprinc
+		principal = uprinc.(*models.Principal) // this is really a models.Principal, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

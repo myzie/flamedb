@@ -9,19 +9,21 @@ import (
 	"net/http"
 
 	middleware "github.com/go-openapi/runtime/middleware"
+
+	models "github.com/myzie/flamedb/models"
 )
 
 // GetRecordHandlerFunc turns a function with the right signature into a get record handler
-type GetRecordHandlerFunc func(GetRecordParams, interface{}) middleware.Responder
+type GetRecordHandlerFunc func(GetRecordParams, *models.Principal) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetRecordHandlerFunc) Handle(params GetRecordParams, principal interface{}) middleware.Responder {
+func (fn GetRecordHandlerFunc) Handle(params GetRecordParams, principal *models.Principal) middleware.Responder {
 	return fn(params, principal)
 }
 
 // GetRecordHandler interface for that can handle valid get record params
 type GetRecordHandler interface {
-	Handle(GetRecordParams, interface{}) middleware.Responder
+	Handle(GetRecordParams, *models.Principal) middleware.Responder
 }
 
 // NewGetRecord creates a new http.Handler for the get record operation
@@ -54,9 +56,9 @@ func (o *GetRecord) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		r = aCtx
 	}
-	var principal interface{}
+	var principal *models.Principal
 	if uprinc != nil {
-		principal = uprinc
+		principal = uprinc.(*models.Principal) // this is really a models.Principal, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

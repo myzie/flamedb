@@ -9,19 +9,21 @@ import (
 	"net/http"
 
 	middleware "github.com/go-openapi/runtime/middleware"
+
+	models "github.com/myzie/flamedb/models"
 )
 
 // UpdateRecordHandlerFunc turns a function with the right signature into a update record handler
-type UpdateRecordHandlerFunc func(UpdateRecordParams, interface{}) middleware.Responder
+type UpdateRecordHandlerFunc func(UpdateRecordParams, *models.Principal) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn UpdateRecordHandlerFunc) Handle(params UpdateRecordParams, principal interface{}) middleware.Responder {
+func (fn UpdateRecordHandlerFunc) Handle(params UpdateRecordParams, principal *models.Principal) middleware.Responder {
 	return fn(params, principal)
 }
 
 // UpdateRecordHandler interface for that can handle valid update record params
 type UpdateRecordHandler interface {
-	Handle(UpdateRecordParams, interface{}) middleware.Responder
+	Handle(UpdateRecordParams, *models.Principal) middleware.Responder
 }
 
 // NewUpdateRecord creates a new http.Handler for the update record operation
@@ -54,9 +56,9 @@ func (o *UpdateRecord) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if aCtx != nil {
 		r = aCtx
 	}
-	var principal interface{}
+	var principal *models.Principal
 	if uprinc != nil {
-		principal = uprinc
+		principal = uprinc.(*models.Principal) // this is really a models.Principal, I promise
 	}
 
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params

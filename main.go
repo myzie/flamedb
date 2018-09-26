@@ -8,6 +8,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"github.com/myzie/flamedb/restapi"
 	"github.com/myzie/flamedb/restapi/operations"
+	"github.com/myzie/flamedb/service"
 	"github.com/rs/cors"
 	log "github.com/sirupsen/logrus"
 )
@@ -50,6 +51,8 @@ func main() {
 		AllowCredentials: true,
 		Debug:            false,
 	})
+
+	service.New(service.Opts{API: api})
 
 	server.SetHandler(corsMiddleware.Handler(api.Serve(nil)))
 

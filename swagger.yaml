@@ -216,3 +216,14 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/RecordOutput"
+  Principal:
+    type: object
+    properties:
+      user_id:
+        type: string
+      name:
+        type: string
+      email:
+        type: string
+      token:
+        type: string
