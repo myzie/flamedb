@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/myzie/flamedb/database"
 	"github.com/myzie/flamedb/models"
 	"github.com/myzie/flamedb/restapi/operations"
 	"github.com/myzie/flamedb/restapi/operations/records"
@@ -11,19 +12,22 @@ import (
 
 // Opts used to configure the FlameDB service
 type Opts struct {
-	API *operations.FlamedbAPI
+	API   *operations.FlamedbAPI
+	Flame database.Flame
 }
 
 // Service implements handlers for the FlameDB service
 type Service struct {
-	api *operations.FlamedbAPI
+	api   *operations.FlamedbAPI
+	flame database.Flame
 }
 
 // New returns a new Service instance
 func New(opts Opts) *Service {
 
 	svc := Service{
-		api: opts.API,
+		api:   opts.API,
+		flame: opts.Flame,
 	}
 
 	svc.api.JSONConsumer = runtime.JSONConsumer()
@@ -48,6 +52,14 @@ func (svc *Service) shutdown() {
 
 func (svc *Service) authenticate(token string) (*models.Principal, error) {
 	log.Infof("authenticate: %s", token)
+
+	records, err := svc.flame.List(database.Query{})
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	log.Infof("Records: %+v\n", records)
+
 	return nil, nil
 }
 

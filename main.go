@@ -4,6 +4,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/myzie/flamedb/database"
+
 	"github.com/go-openapi/loads"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/myzie/flamedb/restapi"
@@ -52,7 +54,21 @@ func main() {
 		Debug:            false,
 	})
 
-	service.New(service.Opts{API: api})
+	dbSettings := database.GetSettings()
+	log.Infof("DB settings: %+v\n", dbSettings)
+
+	gormDB, err := database.Connect(dbSettings)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if err := gormDB.AutoMigrate(&database.Record{}).Error; err != nil {
+		log.Fatalln(err)
+	}
+
+	service.New(service.Opts{
+		API:   api,
+		Flame: database.NewFlame(gormDB),
+	})
 
 	server.SetHandler(corsMiddleware.Handler(api.Serve(nil)))
 
