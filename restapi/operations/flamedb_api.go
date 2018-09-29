@@ -60,6 +60,11 @@ func NewFlamedbAPI(spec *loads.Document) *FlamedbAPI {
 			return middleware.NotImplemented("operation RecordsUpdateRecord has not yet been implemented")
 		}),
 
+		// Applies when the Authorization header is set with the Basic scheme
+		BasicAuthAuth: func(user string, pass string) (*models.Principal, error) {
+			return nil, errors.NotImplemented("basic auth  (basicAuth) has not yet been implemented")
+		},
+
 		// Applies when the "Authorization" header is set
 		FlamedbAuthAuth: func(token string) (*models.Principal, error) {
 			return nil, errors.NotImplemented("api key auth (flamedb_auth) Authorization from header param [Authorization] has not yet been implemented")
@@ -97,6 +102,10 @@ type FlamedbAPI struct {
 
 	// JSONProducer registers a producer for a "application/json" mime type
 	JSONProducer runtime.Producer
+
+	// BasicAuthAuth registers a function that takes username and password and returns a principal
+	// it performs authentication with basic auth
+	BasicAuthAuth func(string, string) (*models.Principal, error)
 
 	// FlamedbAuthAuth registers a function that takes a token and returns a principal
 	// it performs authentication based on an api key Authorization provided in the header
@@ -180,6 +189,10 @@ func (o *FlamedbAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.BasicAuthAuth == nil {
+		unregistered = append(unregistered, "BasicAuthAuth")
+	}
+
 	if o.FlamedbAuthAuth == nil {
 		unregistered = append(unregistered, "AuthorizationAuth")
 	}
@@ -226,6 +239,12 @@ func (o *FlamedbAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) m
 	result := make(map[string]runtime.Authenticator)
 	for name, scheme := range schemes {
 		switch name {
+
+		case "basicAuth":
+			_ = scheme
+			result[name] = o.BasicAuthenticator(func(username, password string) (interface{}, error) {
+				return o.BasicAuthAuth(username, password)
+			})
 
 		case "flamedb_auth":
 

@@ -35,6 +35,9 @@ func init() {
         "security": [
           {
             "flamedb_auth": []
+          },
+          {
+            "basicAuth": []
           }
         ],
         "produces": [
@@ -158,6 +161,9 @@ func init() {
         "security": [
           {
             "flamedb_auth": []
+          },
+          {
+            "basicAuth": []
           }
         ],
         "consumes": [
@@ -209,6 +215,9 @@ func init() {
         "security": [
           {
             "flamedb_auth": []
+          },
+          {
+            "basicAuth": []
           }
         ],
         "produces": [
@@ -253,6 +262,9 @@ func init() {
         "security": [
           {
             "flamedb_auth": []
+          },
+          {
+            "basicAuth": []
           }
         ],
         "consumes": [
@@ -315,6 +327,9 @@ func init() {
         "security": [
           {
             "flamedb_auth": []
+          },
+          {
+            "basicAuth": []
           }
         ],
         "produces": [
@@ -495,6 +510,10 @@ func init() {
     }
   },
   "securityDefinitions": {
+    "basicAuth": {
+      "description": "HTTP basic authentication",
+      "type": "basic"
+    },
     "flamedb_auth": {
       "type": "apiKey",
       "name": "Authorization",
@@ -520,6 +539,9 @@ func init() {
         "security": [
           {
             "flamedb_auth": []
+          },
+          {
+            "basicAuth": []
           }
         ],
         "produces": [
@@ -643,6 +665,9 @@ func init() {
         "security": [
           {
             "flamedb_auth": []
+          },
+          {
+            "basicAuth": []
           }
         ],
         "consumes": [
@@ -694,6 +719,9 @@ func init() {
         "security": [
           {
             "flamedb_auth": []
+          },
+          {
+            "basicAuth": []
           }
         ],
         "produces": [
@@ -738,6 +766,9 @@ func init() {
         "security": [
           {
             "flamedb_auth": []
+          },
+          {
+            "basicAuth": []
           }
         ],
         "consumes": [
@@ -800,6 +831,9 @@ func init() {
         "security": [
           {
             "flamedb_auth": []
+          },
+          {
+            "basicAuth": []
           }
         ],
         "produces": [
@@ -980,6 +1014,10 @@ func init() {
     }
   },
   "securityDefinitions": {
+    "basicAuth": {
+      "description": "HTTP basic authentication",
+      "type": "basic"
+    },
     "flamedb_auth": {
       "type": "apiKey",
       "name": "Authorization",

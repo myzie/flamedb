@@ -7,12 +7,15 @@ host: "127.0.0.1"
 basePath: "/api"
 tags: []
 schemes:
-- "http"
+- http
 securityDefinitions:
   flamedb_auth:
     type: apiKey
     in: header
     name: Authorization
+  basicAuth:
+    type: basic
+    description: HTTP basic authentication
 paths:
   /records:
     post:
@@ -47,6 +50,7 @@ paths:
             $ref: "#/definitions/InternalServerError"
       security:
       - flamedb_auth: []
+      - basicAuth: []
     get:
       tags:
       - "records"
@@ -126,6 +130,7 @@ paths:
             $ref: "#/definitions/InternalServerError"
       security:
       - flamedb_auth: []
+      - basicAuth: []
     put:
       tags:
       - "records"
@@ -167,6 +172,7 @@ paths:
             $ref: "#/definitions/InternalServerError"
       security:
       - flamedb_auth: []
+      - basicAuth: []
     delete:
       tags:
       - "records"
@@ -194,6 +200,7 @@ paths:
             $ref: "#/definitions/InternalServerError"
       security:
       - flamedb_auth: []
+      - basicAuth: []
   /find:
     get:
       tags:
@@ -224,6 +231,7 @@ paths:
             $ref: "#/definitions/InternalServerError"
       security:
       - flamedb_auth: []
+      - basicAuth: []
 definitions:
   RecordInput:
     type: object

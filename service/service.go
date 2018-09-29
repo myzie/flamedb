@@ -1,8 +1,11 @@
 package service
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-openapi/runtime"
@@ -45,7 +48,8 @@ func New(opts Opts) *Service {
 	svc.api.RecordsListRecordsHandler = records.ListRecordsHandlerFunc(svc.listRecords)
 	svc.api.RecordsUpdateRecordHandler = records.UpdateRecordHandlerFunc(svc.updateRecord)
 
-	svc.api.FlamedbAuthAuth = svc.authenticate
+	svc.api.FlamedbAuthAuth = svc.tokenAuth
+	svc.api.BasicAuthAuth = svc.basicAuth
 	svc.api.ServerShutdown = svc.shutdown
 
 	return &svc
@@ -55,16 +59,31 @@ func (svc *Service) shutdown() {
 	log.Info("Service shutdown")
 }
 
-func (svc *Service) authenticate(token string) (*models.Principal, error) {
-	log.Infof("authenticate: %s", token)
+func (svc *Service) tokenAuth(token string) (*models.Principal, error) {
 
-	records, err := svc.flame.List(database.Query{})
-	if err != nil {
-		log.Error(err)
-		return nil, err
+	// For some reason basic authorization is being processed here in addition
+	// to token based auth. For now, differentiate based on the presence of a
+	// "Basic " prefix on the token value.
+
+	if strings.HasPrefix(token, "Basic ") {
+		authStr := strings.SplitN(token, " ", 2)
+		payload, err := base64.StdEncoding.DecodeString(authStr[1])
+		if err != nil {
+			return nil, err
+		}
+		pair := strings.SplitN(string(payload), ":", 2)
+		if len(pair) != 2 || pair[0] == "" || pair[1] == "" {
+			return nil, errors.New("Invalid basic auth syntax")
+		}
+		return svc.basicAuth(pair[0], pair[1])
 	}
-	log.Infof("Records: %+v\n", records)
 
+	log.Infof("token auth: %s", token)
+	return nil, nil
+}
+
+func (svc *Service) basicAuth(user, password string) (*models.Principal, error) {
+	log.Infof("basic auth: %s %s", user, password)
 	return nil, nil
 }
 
