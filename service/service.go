@@ -210,8 +210,6 @@ func (svc *Service) findRecord(params records.FindRecordParams, principal *model
 
 func (svc *Service) listRecords(params records.ListRecordsParams, principal *models.Principal) middleware.Responder {
 
-	log.Info("listRecords")
-
 	query := database.Query{
 		Offset:              getIntDefault(params.Offset, 0),
 		Limit:               getIntDefault(params.Limit, 100),
@@ -255,7 +253,6 @@ func (svc *Service) listRecords(params records.ListRecordsParams, principal *mod
 }
 
 func (svc *Service) updateRecord(params records.UpdateRecordParams, principal *models.Principal) middleware.Responder {
-	log.Info("updateRecord")
 
 	input := *params.Record
 
