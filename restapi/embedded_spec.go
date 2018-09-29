@@ -52,7 +52,6 @@ func init() {
           {
             "minimum": 0,
             "type": "integer",
-            "format": "int64",
             "name": "offset",
             "in": "query"
           },
@@ -60,7 +59,6 @@ func init() {
             "maximum": 1000,
             "minimum": 0,
             "type": "integer",
-            "format": "int64",
             "name": "limit",
             "in": "query"
           },
@@ -101,6 +99,12 @@ func init() {
             "schema": {
               "$ref": "#/definitions/QueryResult"
             }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
+            }
           }
         }
       },
@@ -134,10 +138,22 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Successfully created"
+            "description": "Successfully created",
+            "schema": {
+              "$ref": "#/definitions/RecordOutput"
+            }
           },
           "400": {
-            "description": "Validation exception"
+            "description": "Validation error",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
+            }
           }
         }
       }
@@ -174,7 +190,10 @@ func init() {
             }
           },
           "404": {
-            "description": "Record not found"
+            "description": "Record not found",
+            "schema": {
+              "$ref": "#/definitions/NotFoundError"
+            }
           }
         }
       },
@@ -221,10 +240,22 @@ func init() {
             }
           },
           "400": {
-            "description": "Validation exception"
+            "description": "Validation exception",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
           },
           "404": {
-            "description": "Record not found"
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/NotFoundError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
+            }
           }
         }
       },
@@ -252,14 +283,48 @@ func init() {
           }
         ],
         "responses": {
+          "200": {
+            "description": "Record deleted"
+          },
           "404": {
-            "description": "Record not found"
+            "description": "Record not found",
+            "schema": {
+              "$ref": "#/definitions/NotFoundError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
+            }
           }
         }
       }
     }
   },
   "definitions": {
+    "InternalServerError": {
+      "type": "object",
+      "properties": {
+        "error_type": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "NotFoundError": {
+      "type": "object",
+      "properties": {
+        "error_type": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "Principal": {
       "type": "object",
       "properties": {
@@ -280,10 +345,10 @@ func init() {
     "QueryResult": {
       "type": "object",
       "required": [
-        "items"
+        "records"
       ],
       "properties": {
-        "items": {
+        "records": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/RecordOutput"
@@ -350,6 +415,17 @@ func init() {
           "type": "string"
         },
         "updated_by": {
+          "type": "string"
+        }
+      }
+    },
+    "ValidationError": {
+      "type": "object",
+      "properties": {
+        "error_type": {
+          "type": "string"
+        },
+        "message": {
           "type": "string"
         }
       }
@@ -398,7 +474,6 @@ func init() {
           {
             "minimum": 0,
             "type": "integer",
-            "format": "int64",
             "name": "offset",
             "in": "query"
           },
@@ -406,7 +481,6 @@ func init() {
             "maximum": 1000,
             "minimum": 0,
             "type": "integer",
-            "format": "int64",
             "name": "limit",
             "in": "query"
           },
@@ -447,6 +521,12 @@ func init() {
             "schema": {
               "$ref": "#/definitions/QueryResult"
             }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
+            }
           }
         }
       },
@@ -480,10 +560,22 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Successfully created"
+            "description": "Successfully created",
+            "schema": {
+              "$ref": "#/definitions/RecordOutput"
+            }
           },
           "400": {
-            "description": "Validation exception"
+            "description": "Validation error",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
+            }
           }
         }
       }
@@ -520,7 +612,10 @@ func init() {
             }
           },
           "404": {
-            "description": "Record not found"
+            "description": "Record not found",
+            "schema": {
+              "$ref": "#/definitions/NotFoundError"
+            }
           }
         }
       },
@@ -567,10 +662,22 @@ func init() {
             }
           },
           "400": {
-            "description": "Validation exception"
+            "description": "Validation exception",
+            "schema": {
+              "$ref": "#/definitions/ValidationError"
+            }
           },
           "404": {
-            "description": "Record not found"
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/NotFoundError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
+            }
           }
         }
       },
@@ -598,14 +705,48 @@ func init() {
           }
         ],
         "responses": {
+          "200": {
+            "description": "Record deleted"
+          },
           "404": {
-            "description": "Record not found"
+            "description": "Record not found",
+            "schema": {
+              "$ref": "#/definitions/NotFoundError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
+            }
           }
         }
       }
     }
   },
   "definitions": {
+    "InternalServerError": {
+      "type": "object",
+      "properties": {
+        "error_type": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "NotFoundError": {
+      "type": "object",
+      "properties": {
+        "error_type": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "Principal": {
       "type": "object",
       "properties": {
@@ -626,10 +767,10 @@ func init() {
     "QueryResult": {
       "type": "object",
       "required": [
-        "items"
+        "records"
       ],
       "properties": {
-        "items": {
+        "records": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/RecordOutput"
@@ -696,6 +837,17 @@ func init() {
           "type": "string"
         },
         "updated_by": {
+          "type": "string"
+        }
+      }
+    },
+    "ValidationError": {
+      "type": "object",
+      "properties": {
+        "error_type": {
+          "type": "string"
+        },
+        "message": {
           "type": "string"
         }
       }

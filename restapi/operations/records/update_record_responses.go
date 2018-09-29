@@ -65,6 +65,11 @@ const UpdateRecordBadRequestCode int = 400
 swagger:response updateRecordBadRequest
 */
 type UpdateRecordBadRequest struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.ValidationError `json:"body,omitempty"`
 }
 
 // NewUpdateRecordBadRequest creates UpdateRecordBadRequest with default headers values
@@ -73,22 +78,42 @@ func NewUpdateRecordBadRequest() *UpdateRecordBadRequest {
 	return &UpdateRecordBadRequest{}
 }
 
+// WithPayload adds the payload to the update record bad request response
+func (o *UpdateRecordBadRequest) WithPayload(payload *models.ValidationError) *UpdateRecordBadRequest {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the update record bad request response
+func (o *UpdateRecordBadRequest) SetPayload(payload *models.ValidationError) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *UpdateRecordBadRequest) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(400)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }
 
 // UpdateRecordNotFoundCode is the HTTP code returned for type UpdateRecordNotFound
 const UpdateRecordNotFoundCode int = 404
 
-/*UpdateRecordNotFound Record not found
+/*UpdateRecordNotFound Not found
 
 swagger:response updateRecordNotFound
 */
 type UpdateRecordNotFound struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.NotFoundError `json:"body,omitempty"`
 }
 
 // NewUpdateRecordNotFound creates UpdateRecordNotFound with default headers values
@@ -97,10 +122,69 @@ func NewUpdateRecordNotFound() *UpdateRecordNotFound {
 	return &UpdateRecordNotFound{}
 }
 
+// WithPayload adds the payload to the update record not found response
+func (o *UpdateRecordNotFound) WithPayload(payload *models.NotFoundError) *UpdateRecordNotFound {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the update record not found response
+func (o *UpdateRecordNotFound) SetPayload(payload *models.NotFoundError) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *UpdateRecordNotFound) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(404)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}
+
+// UpdateRecordInternalServerErrorCode is the HTTP code returned for type UpdateRecordInternalServerError
+const UpdateRecordInternalServerErrorCode int = 500
+
+/*UpdateRecordInternalServerError Internal Server Error
+
+swagger:response updateRecordInternalServerError
+*/
+type UpdateRecordInternalServerError struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.InternalServerError `json:"body,omitempty"`
+}
+
+// NewUpdateRecordInternalServerError creates UpdateRecordInternalServerError with default headers values
+func NewUpdateRecordInternalServerError() *UpdateRecordInternalServerError {
+
+	return &UpdateRecordInternalServerError{}
+}
+
+// WithPayload adds the payload to the update record internal server error response
+func (o *UpdateRecordInternalServerError) WithPayload(payload *models.InternalServerError) *UpdateRecordInternalServerError {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the update record internal server error response
+func (o *UpdateRecordInternalServerError) SetPayload(payload *models.InternalServerError) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *UpdateRecordInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(500)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }

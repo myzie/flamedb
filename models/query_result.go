@@ -19,16 +19,16 @@ import (
 // swagger:model QueryResult
 type QueryResult struct {
 
-	// items
+	// records
 	// Required: true
-	Items []*RecordOutput `json:"items"`
+	Records []*RecordOutput `json:"records"`
 }
 
 // Validate validates this query result
 func (m *QueryResult) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateItems(formats); err != nil {
+	if err := m.validateRecords(formats); err != nil {
 		// prop
 		res = append(res, err)
 	}
@@ -39,23 +39,23 @@ func (m *QueryResult) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *QueryResult) validateItems(formats strfmt.Registry) error {
+func (m *QueryResult) validateRecords(formats strfmt.Registry) error {
 
-	if err := validate.Required("items", "body", m.Items); err != nil {
+	if err := validate.Required("records", "body", m.Records); err != nil {
 		return err
 	}
 
-	for i := 0; i < len(m.Items); i++ {
+	for i := 0; i < len(m.Records); i++ {
 
-		if swag.IsZero(m.Items[i]) { // not required
+		if swag.IsZero(m.Records[i]) { // not required
 			continue
 		}
 
-		if m.Items[i] != nil {
+		if m.Records[i] != nil {
 
-			if err := m.Items[i].Validate(formats); err != nil {
+			if err := m.Records[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("items" + "." + strconv.Itoa(i))
+					return ve.ValidateName("records" + "." + strconv.Itoa(i))
 				}
 				return err
 			}

@@ -65,6 +65,11 @@ const GetRecordNotFoundCode int = 404
 swagger:response getRecordNotFound
 */
 type GetRecordNotFound struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.NotFoundError `json:"body,omitempty"`
 }
 
 // NewGetRecordNotFound creates GetRecordNotFound with default headers values
@@ -73,10 +78,25 @@ func NewGetRecordNotFound() *GetRecordNotFound {
 	return &GetRecordNotFound{}
 }
 
+// WithPayload adds the payload to the get record not found response
+func (o *GetRecordNotFound) WithPayload(payload *models.NotFoundError) *GetRecordNotFound {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get record not found response
+func (o *GetRecordNotFound) SetPayload(payload *models.NotFoundError) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *GetRecordNotFound) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(404)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }

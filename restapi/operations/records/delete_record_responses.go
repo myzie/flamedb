@@ -9,7 +9,33 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	models "github.com/myzie/flamedb/models"
 )
+
+// DeleteRecordOKCode is the HTTP code returned for type DeleteRecordOK
+const DeleteRecordOKCode int = 200
+
+/*DeleteRecordOK Record deleted
+
+swagger:response deleteRecordOK
+*/
+type DeleteRecordOK struct {
+}
+
+// NewDeleteRecordOK creates DeleteRecordOK with default headers values
+func NewDeleteRecordOK() *DeleteRecordOK {
+
+	return &DeleteRecordOK{}
+}
+
+// WriteResponse to the client
+func (o *DeleteRecordOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
+
+	rw.WriteHeader(200)
+}
 
 // DeleteRecordNotFoundCode is the HTTP code returned for type DeleteRecordNotFound
 const DeleteRecordNotFoundCode int = 404
@@ -19,6 +45,11 @@ const DeleteRecordNotFoundCode int = 404
 swagger:response deleteRecordNotFound
 */
 type DeleteRecordNotFound struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.NotFoundError `json:"body,omitempty"`
 }
 
 // NewDeleteRecordNotFound creates DeleteRecordNotFound with default headers values
@@ -27,10 +58,69 @@ func NewDeleteRecordNotFound() *DeleteRecordNotFound {
 	return &DeleteRecordNotFound{}
 }
 
+// WithPayload adds the payload to the delete record not found response
+func (o *DeleteRecordNotFound) WithPayload(payload *models.NotFoundError) *DeleteRecordNotFound {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the delete record not found response
+func (o *DeleteRecordNotFound) SetPayload(payload *models.NotFoundError) {
+	o.Payload = payload
+}
+
 // WriteResponse to the client
 func (o *DeleteRecordNotFound) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.Header().Del(runtime.HeaderContentType) //Remove Content-Type on empty responses
-
 	rw.WriteHeader(404)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}
+
+// DeleteRecordInternalServerErrorCode is the HTTP code returned for type DeleteRecordInternalServerError
+const DeleteRecordInternalServerErrorCode int = 500
+
+/*DeleteRecordInternalServerError Internal Server Error
+
+swagger:response deleteRecordInternalServerError
+*/
+type DeleteRecordInternalServerError struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.InternalServerError `json:"body,omitempty"`
+}
+
+// NewDeleteRecordInternalServerError creates DeleteRecordInternalServerError with default headers values
+func NewDeleteRecordInternalServerError() *DeleteRecordInternalServerError {
+
+	return &DeleteRecordInternalServerError{}
+}
+
+// WithPayload adds the payload to the delete record internal server error response
+func (o *DeleteRecordInternalServerError) WithPayload(payload *models.InternalServerError) *DeleteRecordInternalServerError {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the delete record internal server error response
+func (o *DeleteRecordInternalServerError) SetPayload(payload *models.InternalServerError) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *DeleteRecordInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(500)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
 }

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"encoding/json"
 	"fmt"
 	"path"
 	"time"
@@ -20,6 +21,15 @@ type Record struct {
 	CreatedAt  time.Time      `json:"created_at"`
 	UpdatedAt  time.Time      `json:"updated_at"`
 	Properties postgres.Jsonb `json:"properties"`
+}
+
+// GetProperties returns the record properties as a map
+func (r *Record) GetProperties() (map[string]interface{}, error) {
+	var props map[string]interface{}
+	if err := json.Unmarshal(r.Properties.RawMessage, &props); err != nil {
+		return nil, err
+	}
+	return props, nil
 }
 
 // BeforeSave is called to validate the Record before saving it to the database

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path"
 	"strings"
+	"time"
 
 	gorm "github.com/jinzhu/gorm"
 )
@@ -142,6 +143,13 @@ func (f *flame) Get(key Key) (*Record, error) {
 func (f *flame) Save(r *Record) error {
 	if r.ID == "" {
 		r.ID = NewID()
+	}
+	now := time.Now()
+	if r.CreatedAt.IsZero() {
+		r.CreatedAt = now
+	}
+	if r.UpdatedAt.IsZero() {
+		r.UpdatedAt = now
 	}
 	return f.gormDB.Save(r).Error
 }

@@ -56,3 +56,47 @@ func (o *ListRecordsOK) WriteResponse(rw http.ResponseWriter, producer runtime.P
 		}
 	}
 }
+
+// ListRecordsInternalServerErrorCode is the HTTP code returned for type ListRecordsInternalServerError
+const ListRecordsInternalServerErrorCode int = 500
+
+/*ListRecordsInternalServerError Internal Server Error
+
+swagger:response listRecordsInternalServerError
+*/
+type ListRecordsInternalServerError struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.InternalServerError `json:"body,omitempty"`
+}
+
+// NewListRecordsInternalServerError creates ListRecordsInternalServerError with default headers values
+func NewListRecordsInternalServerError() *ListRecordsInternalServerError {
+
+	return &ListRecordsInternalServerError{}
+}
+
+// WithPayload adds the payload to the list records internal server error response
+func (o *ListRecordsInternalServerError) WithPayload(payload *models.InternalServerError) *ListRecordsInternalServerError {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the list records internal server error response
+func (o *ListRecordsInternalServerError) SetPayload(payload *models.InternalServerError) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *ListRecordsInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(500)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}

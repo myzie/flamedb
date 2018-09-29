@@ -1,8 +1,13 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
+	"time"
+
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/myzie/flamedb/database"
 	"github.com/myzie/flamedb/models"
 	"github.com/myzie/flamedb/restapi/operations"
@@ -65,30 +70,208 @@ func (svc *Service) authenticate(token string) (*models.Principal, error) {
 
 // CreateRecord ...
 func (svc *Service) createRecord(params records.CreateRecordParams, principal *models.Principal) middleware.Responder {
+
 	log.Info("createRecord")
-	return records.NewCreateRecordOK()
+
+	input := *params.Body
+	propJSON, err := json.Marshal(input.Properties)
+	if err != nil {
+		return records.NewCreateRecordBadRequest().
+			WithPayload(&models.ValidationError{
+				ErrorType: "ValidationError",
+				Message:   "Invalid properties JSON",
+			})
+	}
+
+	record := database.Record{
+		Path:       *input.Path,
+		Properties: postgres.Jsonb{RawMessage: json.RawMessage(propJSON)},
+	}
+	if err = svc.flame.Save(&record); err != nil {
+		log.WithError(err).Info("Save error")
+		return records.NewCreateRecordInternalServerError().
+			WithPayload(&models.InternalServerError{
+				ErrorType: "InternalServerError",
+				Message:   "Failed to save record",
+			})
+	}
+
+	return records.NewCreateRecordOK().
+		WithPayload(&models.RecordOutput{
+			ID:         apiString(record.ID),
+			CreatedAt:  apiString(record.CreatedAt.Format(time.RFC3339)),
+			CreatedBy:  apiString(record.CreatedBy),
+			UpdatedAt:  apiString(record.UpdatedAt.Format(time.RFC3339)),
+			UpdatedBy:  apiString(record.UpdatedBy),
+			Path:       apiString(record.Path),
+			Parent:     apiString(record.Parent),
+			Properties: input.Properties,
+		})
 }
 
-// DeleteRecord ...
 func (svc *Service) deleteRecord(params records.DeleteRecordParams, principal *models.Principal) middleware.Responder {
+
 	log.Info("deleteRecord")
-	return nil
+
+	record, err := svc.flame.Get(database.Key{ID: params.RecordID})
+	if err != nil {
+		log.WithError(err).Info("Get error")
+		return records.NewDeleteRecordNotFound().
+			WithPayload(&models.NotFoundError{
+				ErrorType: "NotFound",
+				Message:   "Record not found",
+			})
+	}
+
+	if err := svc.flame.Delete(record); err != nil {
+		log.WithError(err).Info("Delete error")
+		return records.NewDeleteRecordInternalServerError().
+			WithPayload(&models.InternalServerError{
+				ErrorType: "InternalServerError",
+				Message:   "Failed to delete record",
+			})
+	}
+	return records.NewDeleteRecordOK()
 }
 
-// GetRecord ...
 func (svc *Service) getRecord(params records.GetRecordParams, principal *models.Principal) middleware.Responder {
-	log.Info("getRecord")
-	return records.NewGetRecordOK()
+
+	log.Info("getRecord", params.RecordID)
+
+	record, err := svc.flame.Get(database.Key{Path: params.RecordID})
+	if err != nil {
+		log.WithError(err).Info("Get error")
+		return records.NewGetRecordNotFound().
+			WithPayload(&models.NotFoundError{
+				ErrorType: "NotFound",
+				Message:   "Record not found",
+			})
+	}
+
+	return records.NewGetRecordOK().
+		WithPayload(&models.RecordOutput{
+			ID:        apiString(record.ID),
+			CreatedAt: apiString(record.CreatedAt.Format(time.RFC3339)),
+			CreatedBy: apiString(record.CreatedBy),
+			UpdatedAt: apiString(record.UpdatedAt.Format(time.RFC3339)),
+			UpdatedBy: apiString(record.UpdatedBy),
+			Path:      apiString(record.Path),
+			Parent:    apiString(record.Parent),
+			// Properties: input.Properties,
+		})
 }
 
-// ListRecords ...
 func (svc *Service) listRecords(params records.ListRecordsParams, principal *models.Principal) middleware.Responder {
+
 	log.Info("listRecords")
-	return records.NewListRecordsOK()
+
+	query := database.Query{
+		Offset:              getIntDefault(params.Offset, 0),
+		Limit:               getIntDefault(params.Limit, 100),
+		Parent:              getStrDefault(params.Parent, ""),
+		Prefix:              getStrDefault(params.Prefix, "/"),
+		OrderBy:             getStrDefault(params.OrderBy, ""),
+		OrderByDesc:         getBoolDefault(params.OrderByDesc, false),
+		OrderByProperty:     getStrDefault(params.OrderByProperty, ""),
+		OrderByPropertyDesc: getBoolDefault(params.OrderByPropertyDesc, false),
+	}
+	results, err := svc.flame.List(query)
+	if err != nil {
+		return records.NewListRecordsInternalServerError()
+	}
+
+	items := make([]*models.RecordOutput, len(results))
+	for i, r := range results {
+
+		createdAt := r.CreatedAt.Format(time.RFC3339)
+		updatedAt := r.UpdatedAt.Format(time.RFC3339)
+
+		var props map[string]interface{}
+		if err := json.Unmarshal(r.Properties.RawMessage, &props); err != nil {
+			return records.NewListRecordsInternalServerError()
+		}
+
+		items[i] = &models.RecordOutput{
+			ID:         apiString(r.ID),
+			Parent:     apiString(r.Parent),
+			Path:       apiString(r.Path),
+			CreatedAt:  apiString(createdAt),
+			CreatedBy:  apiString(r.CreatedBy),
+			UpdatedAt:  apiString(updatedAt),
+			UpdatedBy:  apiString(r.UpdatedBy),
+			Properties: props,
+		}
+	}
+
+	return records.NewListRecordsOK().
+		WithPayload(&models.QueryResult{Records: items})
 }
 
-// UpdateRecord ...
 func (svc *Service) updateRecord(params records.UpdateRecordParams, principal *models.Principal) middleware.Responder {
 	log.Info("updateRecord")
-	return records.NewUpdateRecordOK()
+
+	input := *params.Record
+
+	propJSON, err := json.Marshal(input.Properties)
+	if err != nil {
+		return records.NewUpdateRecordBadRequest().
+			WithPayload(&models.ValidationError{
+				ErrorType: "ValidationError",
+				Message:   "Invalid properties JSON",
+			})
+	}
+
+	record, err := svc.flame.Get(database.Key{ID: params.RecordID})
+	if err != nil {
+		return records.NewUpdateRecordNotFound().
+			WithPayload(&models.NotFoundError{
+				ErrorType: "NotFound",
+				Message:   fmt.Sprintf("Record with ID %s was not found", params.RecordID),
+			})
+	}
+
+	record.Properties = postgres.Jsonb{RawMessage: json.RawMessage(propJSON)}
+	if err = svc.flame.Save(record); err != nil {
+		return records.NewUpdateRecordInternalServerError().
+			WithPayload(&models.InternalServerError{
+				ErrorType: "InternalServerError",
+				Message:   "Failed to update record",
+			})
+	}
+
+	return records.NewUpdateRecordOK().WithPayload(&models.RecordOutput{
+		ID:         apiString(record.ID),
+		CreatedAt:  apiString(record.CreatedAt.Format(time.RFC3339)),
+		CreatedBy:  apiString(record.CreatedBy),
+		UpdatedAt:  apiString(record.UpdatedAt.Format(time.RFC3339)),
+		UpdatedBy:  apiString(record.UpdatedBy),
+		Path:       apiString(record.Path),
+		Parent:     apiString(record.Parent),
+		Properties: input.Properties,
+	})
+}
+
+func getStrDefault(s *string, def string) string {
+	if s == nil {
+		return def
+	}
+	return *s
+}
+
+func getIntDefault(i *int64, def int) int {
+	if i == nil {
+		return def
+	}
+	return int(*i)
+}
+
+func getBoolDefault(b *bool, def bool) bool {
+	if b == nil {
+		return def
+	}
+	return *b
+}
+
+func apiString(s string) *string {
+	return &s
 }
