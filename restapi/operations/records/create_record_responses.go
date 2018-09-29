@@ -60,7 +60,7 @@ func (o *CreateRecordOK) WriteResponse(rw http.ResponseWriter, producer runtime.
 // CreateRecordBadRequestCode is the HTTP code returned for type CreateRecordBadRequest
 const CreateRecordBadRequestCode int = 400
 
-/*CreateRecordBadRequest Validation error
+/*CreateRecordBadRequest Bad request
 
 swagger:response createRecordBadRequest
 */
@@ -69,7 +69,7 @@ type CreateRecordBadRequest struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.ValidationError `json:"body,omitempty"`
+	Payload *models.BadRequest `json:"body,omitempty"`
 }
 
 // NewCreateRecordBadRequest creates CreateRecordBadRequest with default headers values
@@ -79,13 +79,13 @@ func NewCreateRecordBadRequest() *CreateRecordBadRequest {
 }
 
 // WithPayload adds the payload to the create record bad request response
-func (o *CreateRecordBadRequest) WithPayload(payload *models.ValidationError) *CreateRecordBadRequest {
+func (o *CreateRecordBadRequest) WithPayload(payload *models.BadRequest) *CreateRecordBadRequest {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the create record bad request response
-func (o *CreateRecordBadRequest) SetPayload(payload *models.ValidationError) {
+func (o *CreateRecordBadRequest) SetPayload(payload *models.BadRequest) {
 	o.Payload = payload
 }
 

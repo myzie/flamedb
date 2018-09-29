@@ -47,6 +47,9 @@ func NewFlamedbAPI(spec *loads.Document) *FlamedbAPI {
 		RecordsDeleteRecordHandler: records.DeleteRecordHandlerFunc(func(params records.DeleteRecordParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation RecordsDeleteRecord has not yet been implemented")
 		}),
+		RecordsFindRecordHandler: records.FindRecordHandlerFunc(func(params records.FindRecordParams, principal *models.Principal) middleware.Responder {
+			return middleware.NotImplemented("operation RecordsFindRecord has not yet been implemented")
+		}),
 		RecordsGetRecordHandler: records.GetRecordHandlerFunc(func(params records.GetRecordParams, principal *models.Principal) middleware.Responder {
 			return middleware.NotImplemented("operation RecordsGetRecord has not yet been implemented")
 		}),
@@ -106,6 +109,8 @@ type FlamedbAPI struct {
 	RecordsCreateRecordHandler records.CreateRecordHandler
 	// RecordsDeleteRecordHandler sets the operation handler for the delete record operation
 	RecordsDeleteRecordHandler records.DeleteRecordHandler
+	// RecordsFindRecordHandler sets the operation handler for the find record operation
+	RecordsFindRecordHandler records.FindRecordHandler
 	// RecordsGetRecordHandler sets the operation handler for the get record operation
 	RecordsGetRecordHandler records.GetRecordHandler
 	// RecordsListRecordsHandler sets the operation handler for the list records operation
@@ -185,6 +190,10 @@ func (o *FlamedbAPI) Validate() error {
 
 	if o.RecordsDeleteRecordHandler == nil {
 		unregistered = append(unregistered, "records.DeleteRecordHandler")
+	}
+
+	if o.RecordsFindRecordHandler == nil {
+		unregistered = append(unregistered, "records.FindRecordHandler")
 	}
 
 	if o.RecordsGetRecordHandler == nil {
@@ -318,6 +327,11 @@ func (o *FlamedbAPI) initHandlerCache() {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
 	o.handlers["DELETE"]["/records/{recordId}"] = records.NewDeleteRecord(o.context, o.RecordsDeleteRecordHandler)
+
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/find"] = records.NewFindRecord(o.context, o.RecordsFindRecordHandler)
 
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)

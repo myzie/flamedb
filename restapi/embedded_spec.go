@@ -30,6 +30,52 @@ func init() {
   "host": "127.0.0.1",
   "basePath": "/api",
   "paths": {
+    "/find": {
+      "get": {
+        "security": [
+          {
+            "flamedb_auth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "records"
+        ],
+        "summary": "Find a record by path",
+        "operationId": "findRecord",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Path of record to find",
+            "name": "path",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The retrieved record",
+            "schema": {
+              "$ref": "#/definitions/RecordOutput"
+            }
+          },
+          "404": {
+            "description": "Record not found",
+            "schema": {
+              "$ref": "#/definitions/NotFoundError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
+            }
+          }
+        }
+      }
+    },
     "/records": {
       "get": {
         "security": [
@@ -144,9 +190,9 @@ func init() {
             }
           },
           "400": {
-            "description": "Validation error",
+            "description": "Bad request",
             "schema": {
-              "$ref": "#/definitions/ValidationError"
+              "$ref": "#/definitions/BadRequest"
             }
           },
           "500": {
@@ -193,6 +239,12 @@ func init() {
             "description": "Record not found",
             "schema": {
               "$ref": "#/definitions/NotFoundError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
             }
           }
         }
@@ -303,6 +355,17 @@ func init() {
     }
   },
   "definitions": {
+    "BadRequest": {
+      "type": "object",
+      "properties": {
+        "error_type": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "InternalServerError": {
       "type": "object",
       "properties": {
@@ -452,6 +515,52 @@ func init() {
   "host": "127.0.0.1",
   "basePath": "/api",
   "paths": {
+    "/find": {
+      "get": {
+        "security": [
+          {
+            "flamedb_auth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "records"
+        ],
+        "summary": "Find a record by path",
+        "operationId": "findRecord",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Path of record to find",
+            "name": "path",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The retrieved record",
+            "schema": {
+              "$ref": "#/definitions/RecordOutput"
+            }
+          },
+          "404": {
+            "description": "Record not found",
+            "schema": {
+              "$ref": "#/definitions/NotFoundError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
+            }
+          }
+        }
+      }
+    },
     "/records": {
       "get": {
         "security": [
@@ -566,9 +675,9 @@ func init() {
             }
           },
           "400": {
-            "description": "Validation error",
+            "description": "Bad request",
             "schema": {
-              "$ref": "#/definitions/ValidationError"
+              "$ref": "#/definitions/BadRequest"
             }
           },
           "500": {
@@ -615,6 +724,12 @@ func init() {
             "description": "Record not found",
             "schema": {
               "$ref": "#/definitions/NotFoundError"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/InternalServerError"
             }
           }
         }
@@ -725,6 +840,17 @@ func init() {
     }
   },
   "definitions": {
+    "BadRequest": {
+      "type": "object",
+      "properties": {
+        "error_type": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "InternalServerError": {
       "type": "object",
       "properties": {

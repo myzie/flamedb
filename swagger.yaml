@@ -38,9 +38,9 @@ paths:
           schema:
             $ref: "#/definitions/RecordOutput"
         400:
-          description: "Validation error"
+          description: "Bad request"
           schema:
-            $ref: "#/definitions/ValidationError"
+            $ref: "#/definitions/BadRequest"
         500:
           description: "Internal Server Error"
           schema:
@@ -120,6 +120,10 @@ paths:
           description: "Record not found"
           schema:
             $ref: "#/definitions/NotFoundError"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/InternalServerError"
       security:
       - flamedb_auth: []
     put:
@@ -180,6 +184,36 @@ paths:
       responses:
         200:
           description: "Record deleted"
+        404:
+          description: "Record not found"
+          schema:
+            $ref: "#/definitions/NotFoundError"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/InternalServerError"
+      security:
+      - flamedb_auth: []
+  /find:
+    get:
+      tags:
+      - "records"
+      summary: "Find a record by path"
+      description: ""
+      operationId: "findRecord"
+      produces:
+      - "application/json"
+      parameters:
+      - name: path
+        in: query
+        description: "Path of record to find"
+        required: true
+        type: string
+      responses:
+        200:
+          description: "The retrieved record"
+          schema:
+            $ref: "#/definitions/RecordOutput"
         404:
           description: "Record not found"
           schema:
@@ -263,6 +297,13 @@ definitions:
       error_type:
         type: string
   ValidationError:
+    type: object
+    properties:
+      message:
+        type: string
+      error_type:
+        type: string
+  BadRequest:
     type: object
     properties:
       message:

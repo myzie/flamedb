@@ -41,13 +41,13 @@ func New(opts Opts) *Service {
 	svc.api.RecordsCreateRecordHandler = records.CreateRecordHandlerFunc(svc.createRecord)
 	svc.api.RecordsDeleteRecordHandler = records.DeleteRecordHandlerFunc(svc.deleteRecord)
 	svc.api.RecordsGetRecordHandler = records.GetRecordHandlerFunc(svc.getRecord)
+	svc.api.RecordsFindRecordHandler = records.FindRecordHandlerFunc(svc.findRecord)
 	svc.api.RecordsListRecordsHandler = records.ListRecordsHandlerFunc(svc.listRecords)
 	svc.api.RecordsUpdateRecordHandler = records.UpdateRecordHandlerFunc(svc.updateRecord)
 
 	svc.api.FlamedbAuthAuth = svc.authenticate
 	svc.api.ServerShutdown = svc.shutdown
 
-	log.Info("Service created")
 	return &svc
 }
 
@@ -68,16 +68,22 @@ func (svc *Service) authenticate(token string) (*models.Principal, error) {
 	return nil, nil
 }
 
-// CreateRecord ...
 func (svc *Service) createRecord(params records.CreateRecordParams, principal *models.Principal) middleware.Responder {
 
-	log.Info("createRecord")
-
 	input := *params.Body
+
+	if _, err := svc.flame.Get(database.Key{Path: *input.Path}); err == nil {
+		return records.NewCreateRecordBadRequest().
+			WithPayload(&models.BadRequest{
+				ErrorType: "BadRequest",
+				Message:   "Record already exists at that path",
+			})
+	}
+
 	propJSON, err := json.Marshal(input.Properties)
 	if err != nil {
 		return records.NewCreateRecordBadRequest().
-			WithPayload(&models.ValidationError{
+			WithPayload(&models.BadRequest{
 				ErrorType: "ValidationError",
 				Message:   "Invalid properties JSON",
 			})
@@ -111,8 +117,6 @@ func (svc *Service) createRecord(params records.CreateRecordParams, principal *m
 
 func (svc *Service) deleteRecord(params records.DeleteRecordParams, principal *models.Principal) middleware.Responder {
 
-	log.Info("deleteRecord")
-
 	record, err := svc.flame.Get(database.Key{ID: params.RecordID})
 	if err != nil {
 		log.WithError(err).Info("Get error")
@@ -136,9 +140,7 @@ func (svc *Service) deleteRecord(params records.DeleteRecordParams, principal *m
 
 func (svc *Service) getRecord(params records.GetRecordParams, principal *models.Principal) middleware.Responder {
 
-	log.Info("getRecord", params.RecordID)
-
-	record, err := svc.flame.Get(database.Key{Path: params.RecordID})
+	record, err := svc.flame.Get(database.Key{ID: params.RecordID})
 	if err != nil {
 		log.WithError(err).Info("Get error")
 		return records.NewGetRecordNotFound().
@@ -148,16 +150,61 @@ func (svc *Service) getRecord(params records.GetRecordParams, principal *models.
 			})
 	}
 
+	properties, err := record.GetProperties()
+	if err != nil {
+		log.WithError(err).Error("Failed to marshal record JSON")
+		return records.NewGetRecordInternalServerError().
+			WithPayload(&models.InternalServerError{
+				ErrorType: "InternalServerError",
+				Message:   "Failed to get record properties",
+			})
+	}
+
 	return records.NewGetRecordOK().
 		WithPayload(&models.RecordOutput{
-			ID:        apiString(record.ID),
-			CreatedAt: apiString(record.CreatedAt.Format(time.RFC3339)),
-			CreatedBy: apiString(record.CreatedBy),
-			UpdatedAt: apiString(record.UpdatedAt.Format(time.RFC3339)),
-			UpdatedBy: apiString(record.UpdatedBy),
-			Path:      apiString(record.Path),
-			Parent:    apiString(record.Parent),
-			// Properties: input.Properties,
+			ID:         apiString(record.ID),
+			CreatedAt:  apiString(record.CreatedAt.Format(time.RFC3339)),
+			CreatedBy:  apiString(record.CreatedBy),
+			UpdatedAt:  apiString(record.UpdatedAt.Format(time.RFC3339)),
+			UpdatedBy:  apiString(record.UpdatedBy),
+			Path:       apiString(record.Path),
+			Parent:     apiString(record.Parent),
+			Properties: properties,
+		})
+}
+
+func (svc *Service) findRecord(params records.FindRecordParams, principal *models.Principal) middleware.Responder {
+
+	record, err := svc.flame.Get(database.Key{Path: params.Path})
+	if err != nil {
+		log.WithError(err).Info("Get error")
+		return records.NewFindRecordNotFound().
+			WithPayload(&models.NotFoundError{
+				ErrorType: "NotFound",
+				Message:   "Record not found",
+			})
+	}
+
+	properties, err := record.GetProperties()
+	if err != nil {
+		log.WithError(err).Error("Failed to marshal record JSON")
+		return records.NewFindRecordInternalServerError().
+			WithPayload(&models.InternalServerError{
+				ErrorType: "InternalServerError",
+				Message:   "Failed to get record properties",
+			})
+	}
+
+	return records.NewFindRecordOK().
+		WithPayload(&models.RecordOutput{
+			ID:         apiString(record.ID),
+			CreatedAt:  apiString(record.CreatedAt.Format(time.RFC3339)),
+			CreatedBy:  apiString(record.CreatedBy),
+			UpdatedAt:  apiString(record.UpdatedAt.Format(time.RFC3339)),
+			UpdatedBy:  apiString(record.UpdatedBy),
+			Path:       apiString(record.Path),
+			Parent:     apiString(record.Parent),
+			Properties: properties,
 		})
 }
 

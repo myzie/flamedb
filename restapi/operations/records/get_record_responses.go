@@ -100,3 +100,47 @@ func (o *GetRecordNotFound) WriteResponse(rw http.ResponseWriter, producer runti
 		}
 	}
 }
+
+// GetRecordInternalServerErrorCode is the HTTP code returned for type GetRecordInternalServerError
+const GetRecordInternalServerErrorCode int = 500
+
+/*GetRecordInternalServerError Internal Server Error
+
+swagger:response getRecordInternalServerError
+*/
+type GetRecordInternalServerError struct {
+
+	/*
+	  In: Body
+	*/
+	Payload *models.InternalServerError `json:"body,omitempty"`
+}
+
+// NewGetRecordInternalServerError creates GetRecordInternalServerError with default headers values
+func NewGetRecordInternalServerError() *GetRecordInternalServerError {
+
+	return &GetRecordInternalServerError{}
+}
+
+// WithPayload adds the payload to the get record internal server error response
+func (o *GetRecordInternalServerError) WithPayload(payload *models.InternalServerError) *GetRecordInternalServerError {
+	o.Payload = payload
+	return o
+}
+
+// SetPayload sets the payload to the get record internal server error response
+func (o *GetRecordInternalServerError) SetPayload(payload *models.InternalServerError) {
+	o.Payload = payload
+}
+
+// WriteResponse to the client
+func (o *GetRecordInternalServerError) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+
+	rw.WriteHeader(500)
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
+	}
+}
