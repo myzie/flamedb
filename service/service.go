@@ -1,6 +1,7 @@
 package service
 
 import (
+	"crypto/rsa"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -22,12 +23,14 @@ import (
 type Opts struct {
 	API   *operations.FlamedbAPI
 	Flame database.Flame
+	Key   *rsa.PublicKey
 }
 
 // Service implements handlers for the FlameDB service
 type Service struct {
 	api   *operations.FlamedbAPI
 	flame database.Flame
+	key   *rsa.PublicKey
 }
 
 // New returns a new Service instance
@@ -36,6 +39,7 @@ func New(opts Opts) *Service {
 	svc := Service{
 		api:   opts.API,
 		flame: opts.Flame,
+		key:   opts.Key,
 	}
 
 	svc.api.JSONConsumer = runtime.JSONConsumer()
@@ -59,14 +63,14 @@ func (svc *Service) shutdown() {
 	log.Info("Service shutdown")
 }
 
-func (svc *Service) tokenAuth(token string) (*models.Principal, error) {
+func (svc *Service) tokenAuth(tokenStr string) (*models.Principal, error) {
 
 	// For some reason basic authorization is being processed here in addition
 	// to token based auth. For now, differentiate based on the presence of a
 	// "Basic " prefix on the token value.
 
-	if strings.HasPrefix(token, "Basic ") {
-		authStr := strings.SplitN(token, " ", 2)
+	if strings.HasPrefix(tokenStr, "Basic ") {
+		authStr := strings.SplitN(tokenStr, " ", 2)
 		payload, err := base64.StdEncoding.DecodeString(authStr[1])
 		if err != nil {
 			return nil, err
@@ -78,8 +82,13 @@ func (svc *Service) tokenAuth(token string) (*models.Principal, error) {
 		return svc.basicAuth(pair[0], pair[1])
 	}
 
-	log.Infof("token auth: %s", token)
-	return nil, nil
+	// If we reach here, then process authentication using JWTs
+	if svc.key == nil {
+		return nil, errors.New("No token verification key is configured")
+	}
+	principal, err := parseJWT(svc.key, tokenStr)
+	log.Infof("JWT principal: %+v", principal)
+	return principal, err
 }
 
 func (svc *Service) basicAuth(user, password string) (*models.Principal, error) {

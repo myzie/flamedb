@@ -2,10 +2,13 @@ package service
 
 import (
 	"context"
+	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
+
+	jwt "github.com/dgrijalva/jwt-go"
 )
 
 const (
@@ -15,6 +18,7 @@ const (
 
 // JSONWebKey is a single JSON Web Key definition
 type JSONWebKey struct {
+	Alg string   `json:"alg"`
 	Kty string   `json:"kty"`
 	Kid string   `json:"kid"`
 	Use string   `json:"use"`
@@ -35,13 +39,30 @@ type JSONWebKeySet struct {
 
 // Find looks for a key with the given key ID
 // token.Header["kid"]
-func (keys JSONWebKeySet) Find(keyID string) (JSONWebKey, bool) {
-	for k := range keys.Keys {
-		if keyID == keys.Keys[k].Kid {
-			return keys.Keys[k], true
+func (set JSONWebKeySet) Find(keyID string) (JSONWebKey, bool) {
+	for i := range set.Keys {
+		if keyID == set.Keys[i].Kid {
+			return set.Keys[i], true
 		}
 	}
 	return JSONWebKey{}, false
+}
+
+// GetRSAPublicKeys returns a slice of RSA public keys generated from this JWKS
+func (set JSONWebKeySet) GetRSAPublicKeys() ([]*rsa.PublicKey, error) {
+	var result []*rsa.PublicKey
+	for _, jwk := range set.Keys {
+		if jwk.Kty != "RSA" || jwk.Alg != "RS256" {
+			continue
+		}
+		cert := jwk.GetCertificate()
+		rsaKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(cert))
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, rsaKey)
+	}
+	return result, nil
 }
 
 // GetKeySet retrieves public keys from a remote JWKS endpoint

@@ -1,36 +1,53 @@
 package main
 
 import (
-	"os"
+	"crypto/rsa"
 	"strings"
 
 	"github.com/go-openapi/loads"
-	flags "github.com/jessevdk/go-flags"
 	"github.com/myzie/flamedb/database"
 	"github.com/myzie/flamedb/restapi"
 	"github.com/myzie/flamedb/restapi/operations"
 	"github.com/myzie/flamedb/service"
+	"github.com/namsral/flag"
 	"github.com/rs/cors"
 	log "github.com/sirupsen/logrus"
 )
 
+func getJwk(url string) *rsa.PublicKey {
+	jwks, err := service.GetKeySet(url)
+	if err != nil {
+		log.Fatalln("Failed to retrieve JWKS:", err)
+	}
+	keys, err := jwks.GetRSAPublicKeys()
+	if err != nil {
+		log.Fatalln("Failed to decode JWKS:", err)
+	}
+	if len(keys) == 0 {
+		log.Fatalln("JWKS is empty")
+	}
+	return keys[0]
+}
+
 func main() {
 
-	var opts struct {
-		Addr    string `short:"a" long:"addr" default:"localhost" description:"Listen address"`
-		Port    int    `short:"p" long:"port" default:"8000" description:"Listen port"`
-		Origins string `long:"origins" description:"List of origins to allow"`
-	}
+	var (
+		addr    string
+		port    int
+		origins string
+		keyURL  string
+	)
 
-	parser := flags.NewParser(&opts, flags.Default)
-	if _, err := parser.Parse(); err != nil {
-		code := 1
-		if fe, ok := err.(*flags.Error); ok {
-			if fe.Type == flags.ErrHelp {
-				code = 0
-			}
-		}
-		os.Exit(code)
+	flag.StringVar(&addr, "addr", "localhost", "Listen address")
+	flag.StringVar(&origins, "origins", "", "List of origins to allow")
+	flag.IntVar(&port, "port", 8000, "Listen port")
+	flag.StringVar(&keyURL, "jwks", "", "JWKS URL")
+	flag.Parse()
+
+	var jwk *rsa.PublicKey
+	if keyURL != "" {
+		jwk = getJwk(keyURL)
+		log.Println("Loaded JWKS", keyURL)
 	}
 
 	swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
@@ -43,11 +60,11 @@ func main() {
 	server := restapi.NewServer(api)
 	defer server.Shutdown()
 
-	server.Host = opts.Addr
-	server.Port = opts.Port
+	server.Host = addr
+	server.Port = port
 
 	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins:   strings.Split(opts.Origins, ","),
+		AllowedOrigins:   strings.Split(origins, ","),
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
 		Debug:            false,
@@ -67,9 +84,12 @@ func main() {
 	service.New(service.Opts{
 		API:   api,
 		Flame: database.NewFlame(gormDB),
+		Key:   jwk,
 	})
 
 	server.SetHandler(corsMiddleware.Handler(api.Serve(nil)))
+
+	log.Printf("Listening at %s:%d\n", addr, port)
 
 	if err := server.Serve(); err != nil {
 		log.Fatalln(err)
