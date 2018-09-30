@@ -4,10 +4,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/myzie/flamedb/database"
-
 	"github.com/go-openapi/loads"
 	flags "github.com/jessevdk/go-flags"
+	"github.com/myzie/flamedb/database"
 	"github.com/myzie/flamedb/restapi"
 	"github.com/myzie/flamedb/restapi/operations"
 	"github.com/myzie/flamedb/service"
