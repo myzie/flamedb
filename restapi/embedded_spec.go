@@ -186,6 +186,12 @@ func init() {
             "schema": {
               "$ref": "#/definitions/RecordInput"
             }
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
@@ -294,6 +300,12 @@ func init() {
             "schema": {
               "$ref": "#/definitions/RecordInput"
             }
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
@@ -304,9 +316,9 @@ func init() {
             }
           },
           "400": {
-            "description": "Validation exception",
+            "description": "Bad request",
             "schema": {
-              "$ref": "#/definitions/ValidationError"
+              "$ref": "#/definitions/BadRequest"
             }
           },
           "404": {
@@ -347,11 +359,23 @@ func init() {
             "name": "recordId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
           "200": {
             "description": "Record deleted"
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/BadRequest"
+            }
           },
           "404": {
             "description": "Record not found",
@@ -406,13 +430,10 @@ func init() {
     "Principal": {
       "type": "object",
       "properties": {
-        "email": {
-          "type": "string"
+        "is_service": {
+          "type": "boolean"
         },
-        "name": {
-          "type": "string"
-        },
-        "token": {
+        "permissions": {
           "type": "string"
         },
         "user_id": {
@@ -690,6 +711,12 @@ func init() {
             "schema": {
               "$ref": "#/definitions/RecordInput"
             }
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
@@ -798,6 +825,12 @@ func init() {
             "schema": {
               "$ref": "#/definitions/RecordInput"
             }
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
@@ -808,9 +841,9 @@ func init() {
             }
           },
           "400": {
-            "description": "Validation exception",
+            "description": "Bad request",
             "schema": {
-              "$ref": "#/definitions/ValidationError"
+              "$ref": "#/definitions/BadRequest"
             }
           },
           "404": {
@@ -851,11 +884,23 @@ func init() {
             "name": "recordId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
           "200": {
             "description": "Record deleted"
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/BadRequest"
+            }
           },
           "404": {
             "description": "Record not found",
@@ -910,13 +955,10 @@ func init() {
     "Principal": {
       "type": "object",
       "properties": {
-        "email": {
-          "type": "string"
+        "is_service": {
+          "type": "boolean"
         },
-        "name": {
-          "type": "string"
-        },
-        "token": {
+        "permissions": {
           "type": "string"
         },
         "user_id": {

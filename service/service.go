@@ -21,25 +21,28 @@ import (
 
 // Opts used to configure the FlameDB service
 type Opts struct {
-	API   *operations.FlamedbAPI
-	Flame database.Flame
-	Key   *rsa.PublicKey
+	API            *operations.FlamedbAPI
+	Flame          database.Flame
+	AccessKeyStore database.AccessKeyStore
+	Key            *rsa.PublicKey
 }
 
 // Service implements handlers for the FlameDB service
 type Service struct {
-	api   *operations.FlamedbAPI
-	flame database.Flame
-	key   *rsa.PublicKey
+	api        *operations.FlamedbAPI
+	flame      database.Flame
+	accessKeys database.AccessKeyStore
+	key        *rsa.PublicKey
 }
 
 // New returns a new Service instance
 func New(opts Opts) *Service {
 
 	svc := Service{
-		api:   opts.API,
-		flame: opts.Flame,
-		key:   opts.Key,
+		api:        opts.API,
+		flame:      opts.Flame,
+		accessKeys: opts.AccessKeyStore,
+		key:        opts.Key,
 	}
 
 	svc.api.JSONConsumer = runtime.JSONConsumer()
@@ -91,14 +94,49 @@ func (svc *Service) tokenAuth(tokenStr string) (*models.Principal, error) {
 	return principal, err
 }
 
-func (svc *Service) basicAuth(user, password string) (*models.Principal, error) {
-	log.Infof("basic auth: %s %s", user, password)
-	return nil, nil
+func (svc *Service) basicAuth(keyID, keySecret string) (*models.Principal, error) {
+
+	log.Infof("basic auth: %s", keyID)
+
+	if svc.accessKeys == nil {
+		return nil, errors.New("Access key store is not configured")
+	}
+
+	accessKey, err := svc.accessKeys.Get(keyID)
+	if err != nil {
+		return nil, err
+	}
+	log.Infof("Access key: %+v", accessKey)
+
+	if accessKey.Compare(keySecret) != nil {
+		return nil, errors.New("Incorrect secret")
+	}
+
+	perm := database.AccessKeyPermission(accessKey.Permission)
+	isService := perm == database.ServiceRead || perm == database.ServiceReadWrite
+
+	return &models.Principal{
+		UserID:      accessKey.RefID,
+		Permissions: accessKey.Permission,
+		IsService:   isService,
+	}, nil
 }
 
 func (svc *Service) createRecord(params records.CreateRecordParams, principal *models.Principal) middleware.Responder {
 
 	input := *params.Body
+
+	userID := principal.UserID
+	if principal.IsService {
+		if params.XUserID == nil || *params.XUserID == "" {
+			return records.NewCreateRecordBadRequest().
+				WithPayload(&models.BadRequest{
+					ErrorType: "BadRequest",
+					Message:   "Service must specify X-User-ID",
+				})
+		}
+		userID = *params.XUserID
+	}
 
 	if _, err := svc.flame.Get(database.Key{Path: *input.Path}); err == nil {
 		return records.NewCreateRecordBadRequest().
@@ -119,6 +157,8 @@ func (svc *Service) createRecord(params records.CreateRecordParams, principal *m
 
 	record := database.Record{
 		Path:       *input.Path,
+		CreatedBy:  userID,
+		UpdatedBy:  userID,
 		Properties: postgres.Jsonb{RawMessage: json.RawMessage(propJSON)},
 	}
 	if err = svc.flame.Save(&record); err != nil {
@@ -145,6 +185,18 @@ func (svc *Service) createRecord(params records.CreateRecordParams, principal *m
 
 func (svc *Service) deleteRecord(params records.DeleteRecordParams, principal *models.Principal) middleware.Responder {
 
+	userID := principal.UserID
+	if principal.IsService {
+		if params.XUserID == nil || *params.XUserID == "" {
+			return records.NewDeleteRecordBadRequest().
+				WithPayload(&models.BadRequest{
+					ErrorType: "BadRequest",
+					Message:   "Service must specify X-User-ID",
+				})
+		}
+		userID = *params.XUserID
+	}
+
 	record, err := svc.flame.Get(database.Key{ID: params.RecordID})
 	if err != nil {
 		log.WithError(err).Info("Get error")
@@ -163,6 +215,8 @@ func (svc *Service) deleteRecord(params records.DeleteRecordParams, principal *m
 				Message:   "Failed to delete record",
 			})
 	}
+
+	log.Printf("Record %s deleted by %s", record.ID, userID)
 	return records.NewDeleteRecordOK()
 }
 
@@ -283,6 +337,18 @@ func (svc *Service) listRecords(params records.ListRecordsParams, principal *mod
 func (svc *Service) updateRecord(params records.UpdateRecordParams, principal *models.Principal) middleware.Responder {
 
 	input := *params.Record
+
+	userID := principal.UserID
+	if principal.IsService {
+		if params.XUserID == nil || *params.XUserID == "" {
+			return records.NewUpdateRecordBadRequest().
+				WithPayload(&models.BadRequest{
+					ErrorType: "BadRequest",
+					Message:   "Service must specify X-User-ID",
+				})
+		}
+		userID = *params.XUserID
+	}
 
 	propJSON, err := json.Marshal(input.Properties)
 	if err != nil {

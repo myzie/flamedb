@@ -81,10 +81,16 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	keyStore, err := database.NewAccessKeyStore(gormDB)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	service.New(service.Opts{
-		API:   api,
-		Flame: database.NewFlame(gormDB),
-		Key:   jwk,
+		API:            api,
+		Flame:          database.NewFlame(gormDB),
+		AccessKeyStore: keyStore,
+		Key:            jwk,
 	})
 
 	server.SetHandler(corsMiddleware.Handler(api.Serve(nil)))

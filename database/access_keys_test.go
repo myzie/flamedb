@@ -3,13 +3,14 @@ package database
 import (
 	"testing"
 
+	"github.com/myzie/flamedb/database"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAccessKey(t *testing.T) {
 
-	key, text, err := NewAccessKey("my-key")
+	key, text, err := NewAccessKey("my-key", database.ReadOnly)
 	require.Nil(t, err)
 	require.NotNil(t, key)
 

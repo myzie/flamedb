@@ -8,23 +8,16 @@ import (
 	"github.com/myzie/flamedb/models"
 )
 
-// CustomClaims contained within a JWT
-type CustomClaims struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
-	jwt.StandardClaims
-}
-
 func parseJWT(key *rsa.PublicKey, tokenStr string) (*models.Principal, error) {
 
-	token, err := jwt.ParseWithClaims(tokenStr, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	claims, ok := token.Claims.(*CustomClaims)
+	claims, ok := token.Claims.(*jwt.StandardClaims)
 	if !ok {
 		return nil, errors.New("Unknown JWT claims type")
 	}
@@ -33,9 +26,7 @@ func parseJWT(key *rsa.PublicKey, tokenStr string) (*models.Principal, error) {
 	}
 
 	return &models.Principal{
-		Email:  claims.Email,
-		Name:   claims.Name,
-		UserID: claims.Subject,
-		Token:  tokenStr,
+		UserID:      claims.Subject,
+		Permissions: "rw",
 	}, nil
 }
