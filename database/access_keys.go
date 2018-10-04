@@ -55,6 +55,8 @@ func NewAccessKey(name, refID string, perm AccessKeyPermission) (*AccessKey, str
 	switch perm {
 	case ReadOnly:
 	case ReadWrite:
+	case ServiceRead:
+	case ServiceReadWrite:
 	default:
 		return nil, "", errors.New("Invalid permission value")
 	}

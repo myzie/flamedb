@@ -19,6 +19,14 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ContextKey is a type used for storing values in a context
+type ContextKey int
+
+const (
+	// ContextKeyUserID is the key used to store user ID in a context
+	ContextKeyUserID ContextKey = iota
+)
+
 // Opts used to configure the FlameDB service
 type Opts struct {
 	API            *operations.FlamedbAPI
@@ -136,6 +144,7 @@ func (svc *Service) createRecord(params records.CreateRecordParams, principal *m
 				})
 		}
 		userID = *params.XUserID
+		log.WithField("user_id", userID).Info("Principal updated")
 	}
 
 	if _, err := svc.flame.Get(database.Key{Path: *input.Path}); err == nil {
@@ -195,6 +204,7 @@ func (svc *Service) deleteRecord(params records.DeleteRecordParams, principal *m
 				})
 		}
 		userID = *params.XUserID
+		log.WithField("user_id", userID).Info("Principal updated")
 	}
 
 	record, err := svc.flame.Get(database.Key{ID: params.RecordID})
@@ -292,6 +302,8 @@ func (svc *Service) findRecord(params records.FindRecordParams, principal *model
 
 func (svc *Service) listRecords(params records.ListRecordsParams, principal *models.Principal) middleware.Responder {
 
+	log.Println("listRecords")
+
 	query := database.Query{
 		Offset:              getIntDefault(params.Offset, 0),
 		Limit:               getIntDefault(params.Limit, 100),
@@ -348,12 +360,13 @@ func (svc *Service) updateRecord(params records.UpdateRecordParams, principal *m
 				})
 		}
 		userID = *params.XUserID
+		log.WithField("user_id", userID).Info("Principal updated")
 	}
 
 	propJSON, err := json.Marshal(input.Properties)
 	if err != nil {
 		return records.NewUpdateRecordBadRequest().
-			WithPayload(&models.ValidationError{
+			WithPayload(&models.BadRequest{
 				ErrorType: "ValidationError",
 				Message:   "Invalid properties JSON",
 			})
