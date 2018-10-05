@@ -301,15 +301,8 @@ func (svc *Service) listRecords(params records.ListRecordsParams, principal *mod
 
 	items := make([]*models.RecordOutput, len(results))
 	for i, r := range results {
-
 		createdAt := r.CreatedAt.Format(time.RFC3339)
 		updatedAt := r.UpdatedAt.Format(time.RFC3339)
-
-		var props map[string]interface{}
-		if err := json.Unmarshal(r.Properties.RawMessage, &props); err != nil {
-			return records.NewListRecordsInternalServerError()
-		}
-
 		items[i] = &models.RecordOutput{
 			ID:         apiString(r.ID),
 			Parent:     apiString(r.Parent),
@@ -318,7 +311,7 @@ func (svc *Service) listRecords(params records.ListRecordsParams, principal *mod
 			CreatedBy:  apiString(r.CreatedBy),
 			UpdatedAt:  apiString(updatedAt),
 			UpdatedBy:  apiString(r.UpdatedBy),
-			Properties: props,
+			Properties: r.MustGetProperties(),
 		}
 	}
 
