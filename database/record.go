@@ -32,6 +32,16 @@ func (r *Record) GetProperties() (map[string]interface{}, error) {
 	return props, nil
 }
 
+// MustGetProperties returns the record properties as a map.
+// If they fail to unmarshal this panics.
+func (r *Record) MustGetProperties() map[string]interface{} {
+	props, err := r.GetProperties()
+	if err != nil {
+		panic(fmt.Sprintf("Failed to unmarshal properties: %s", err.Error()))
+	}
+	return props
+}
+
 // BeforeSave is called to validate the Record before saving it to the database
 func (r *Record) BeforeSave() error {
 

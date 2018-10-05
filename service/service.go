@@ -242,16 +242,6 @@ func (svc *Service) getRecord(params records.GetRecordParams, principal *models.
 			})
 	}
 
-	properties, err := record.GetProperties()
-	if err != nil {
-		log.WithError(err).Error("Failed to marshal record JSON")
-		return records.NewGetRecordInternalServerError().
-			WithPayload(&models.InternalServerError{
-				ErrorType: "InternalServerError",
-				Message:   "Failed to get record properties",
-			})
-	}
-
 	return records.NewGetRecordOK().
 		WithPayload(&models.RecordOutput{
 			ID:         apiString(record.ID),
@@ -261,7 +251,7 @@ func (svc *Service) getRecord(params records.GetRecordParams, principal *models.
 			UpdatedBy:  apiString(record.UpdatedBy),
 			Path:       apiString(record.Path),
 			Parent:     apiString(record.Parent),
-			Properties: properties,
+			Properties: record.MustGetProperties(),
 		})
 }
 
@@ -277,16 +267,6 @@ func (svc *Service) findRecord(params records.FindRecordParams, principal *model
 			})
 	}
 
-	properties, err := record.GetProperties()
-	if err != nil {
-		log.WithError(err).Error("Failed to marshal record JSON")
-		return records.NewFindRecordInternalServerError().
-			WithPayload(&models.InternalServerError{
-				ErrorType: "InternalServerError",
-				Message:   "Failed to get record properties",
-			})
-	}
-
 	return records.NewFindRecordOK().
 		WithPayload(&models.RecordOutput{
 			ID:         apiString(record.ID),
@@ -296,7 +276,7 @@ func (svc *Service) findRecord(params records.FindRecordParams, principal *model
 			UpdatedBy:  apiString(record.UpdatedBy),
 			Path:       apiString(record.Path),
 			Parent:     apiString(record.Parent),
-			Properties: properties,
+			Properties: record.MustGetProperties(),
 		})
 }
 
