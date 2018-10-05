@@ -9,7 +9,7 @@ import (
 
 func TestAccessKey(t *testing.T) {
 
-	key, text, err := NewAccessKey("my-key")
+	key, text, err := NewAccessKey("my-key", "ref-id", ReadOnly)
 	require.Nil(t, err)
 	require.NotNil(t, key)
 

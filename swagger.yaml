@@ -35,6 +35,11 @@ paths:
         required: true
         schema:
           $ref: "#/definitions/RecordInput"
+      - name: X-User-ID
+        in: header
+        description: "Override user ID"
+        required: false
+        type: string
       responses:
         200:
           description: "Successfully created"
@@ -153,15 +158,20 @@ paths:
         required: true
         schema:
           $ref: "#/definitions/RecordInput"
+      - name: X-User-ID
+        in: header
+        description: "Override user ID"
+        required: false
+        type: string
       responses:
         200:
           description: "Successfully updated"
           schema:
             $ref: "#/definitions/RecordOutput"
         400:
-          description: "Validation exception"
+          description: "Bad request"
           schema:
-            $ref: "#/definitions/ValidationError"
+            $ref: "#/definitions/BadRequest"
         404:
           description: "Not found"
           schema:
@@ -187,9 +197,18 @@ paths:
         description: "ID of record to be updated"
         required: true
         type: string
+      - name: X-User-ID
+        in: header
+        description: "Override user ID"
+        required: false
+        type: string
       responses:
         200:
           description: "Record deleted"
+        400:
+          description: "Bad request"
+          schema:
+            $ref: "#/definitions/BadRequest"
         404:
           description: "Record not found"
           schema:
@@ -291,12 +310,10 @@ definitions:
     properties:
       user_id:
         type: string
-      name:
+      permissions:
         type: string
-      email:
-        type: string
-      token:
-        type: string
+      is_service:
+        type: boolean
   InternalServerError:
     type: object
     properties:

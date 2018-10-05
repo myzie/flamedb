@@ -12,3 +12,4 @@
 *.out
 
 /flamedb
+cmd/flamedb-access-key/flamedb-access-key

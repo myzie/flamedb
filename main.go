@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"crypto/rsa"
+	"net/http"
 	"strings"
 
 	"github.com/go-openapi/loads"
@@ -27,6 +29,14 @@ func getJwk(url string) *rsa.PublicKey {
 		log.Fatalln("JWKS is empty")
 	}
 	return keys[0]
+}
+
+func setupMiddleware(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := r.Header.Get("X-User-Id")
+		ctx := context.WithValue(r.Context(), service.ContextKeyUserID, userID)
+		handler.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 func main() {
@@ -81,13 +91,19 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	keyStore, err := database.NewAccessKeyStore(gormDB)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
 	service.New(service.Opts{
-		API:   api,
-		Flame: database.NewFlame(gormDB),
-		Key:   jwk,
+		API:            api,
+		Flame:          database.NewFlame(gormDB),
+		AccessKeyStore: keyStore,
+		Key:            jwk,
 	})
 
-	server.SetHandler(corsMiddleware.Handler(api.Serve(nil)))
+	server.SetHandler(corsMiddleware.Handler(api.Serve(setupMiddleware)))
 
 	log.Printf("Listening at %s:%d\n", addr, port)
 

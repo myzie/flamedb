@@ -60,7 +60,7 @@ func (o *UpdateRecordOK) WriteResponse(rw http.ResponseWriter, producer runtime.
 // UpdateRecordBadRequestCode is the HTTP code returned for type UpdateRecordBadRequest
 const UpdateRecordBadRequestCode int = 400
 
-/*UpdateRecordBadRequest Validation exception
+/*UpdateRecordBadRequest Bad request
 
 swagger:response updateRecordBadRequest
 */
@@ -69,7 +69,7 @@ type UpdateRecordBadRequest struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.ValidationError `json:"body,omitempty"`
+	Payload *models.BadRequest `json:"body,omitempty"`
 }
 
 // NewUpdateRecordBadRequest creates UpdateRecordBadRequest with default headers values
@@ -79,13 +79,13 @@ func NewUpdateRecordBadRequest() *UpdateRecordBadRequest {
 }
 
 // WithPayload adds the payload to the update record bad request response
-func (o *UpdateRecordBadRequest) WithPayload(payload *models.ValidationError) *UpdateRecordBadRequest {
+func (o *UpdateRecordBadRequest) WithPayload(payload *models.BadRequest) *UpdateRecordBadRequest {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the update record bad request response
-func (o *UpdateRecordBadRequest) SetPayload(payload *models.ValidationError) {
+func (o *UpdateRecordBadRequest) SetPayload(payload *models.BadRequest) {
 	o.Payload = payload
 }
 

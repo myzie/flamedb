@@ -16,14 +16,11 @@ import (
 // swagger:model Principal
 type Principal struct {
 
-	// email
-	Email string `json:"email,omitempty"`
+	// is service
+	IsService bool `json:"is_service,omitempty"`
 
-	// name
-	Name string `json:"name,omitempty"`
-
-	// token
-	Token string `json:"token,omitempty"`
+	// permissions
+	Permissions string `json:"permissions,omitempty"`
 
 	// user id
 	UserID string `json:"user_id,omitempty"`
