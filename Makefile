@@ -13,11 +13,16 @@ all:
 
 .PHONY: test
 test:
-	go test -v ./...
+	go test -v -cover ./...
 
 .PHONY: generate
 generate:
 	swagger generate server -A flamedb -P models.Principal -f ./swagger.yaml
+
+.PHONY: mocks
+mocks:
+	mkdir -p ./database/mock_database
+	go generate ./database
 
 .PHONY: install_swagger
 install_swagger:

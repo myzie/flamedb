@@ -1,5 +1,7 @@
 package database
 
+//go:generate mockgen -source interface.go -destination mock_database/mock_flame.go
+
 // Query used to list records
 type Query struct {
 	Offset              int

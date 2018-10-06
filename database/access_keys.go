@@ -1,5 +1,7 @@
 package database
 
+//go:generate mockgen -source access_keys.go -destination mock_database/mock_access_key_store.go
+
 import (
 	"encoding/base64"
 	"errors"
