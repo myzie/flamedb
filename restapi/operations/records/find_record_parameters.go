@@ -32,6 +32,10 @@ type FindRecordParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
+	/*Override user ID
+	  In: header
+	*/
+	XUserID *string
 	/*Path of record to find
 	  Required: true
 	  In: query
@@ -50,6 +54,10 @@ func (o *FindRecordParams) BindRequest(r *http.Request, route *middleware.Matche
 
 	qs := runtime.Values(r.URL.Query())
 
+	if err := o.bindXUserID(r.Header[http.CanonicalHeaderKey("X-User-ID")], true, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	qPath, qhkPath, _ := qs.GetOK("path")
 	if err := o.bindPath(qPath, qhkPath, route.Formats); err != nil {
 		res = append(res, err)
@@ -58,6 +66,23 @@ func (o *FindRecordParams) BindRequest(r *http.Request, route *middleware.Matche
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (o *FindRecordParams) bindXUserID(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+
+	o.XUserID = &raw
+
 	return nil
 }
 

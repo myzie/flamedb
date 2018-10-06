@@ -55,6 +55,12 @@ func init() {
             "name": "path",
             "in": "query",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
@@ -140,6 +146,12 @@ func init() {
             "type": "boolean",
             "name": "orderByPropertyDesc",
             "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
@@ -241,6 +253,12 @@ func init() {
             "name": "recordId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
@@ -580,6 +598,12 @@ func init() {
             "name": "path",
             "in": "query",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
@@ -665,6 +689,12 @@ func init() {
             "type": "boolean",
             "name": "orderByPropertyDesc",
             "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
@@ -766,6 +796,12 @@ func init() {
             "name": "recordId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Override user ID",
+            "name": "X-User-ID",
+            "in": "header"
           }
         ],
         "responses": {
