@@ -4,15 +4,13 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
-	"github.com/myzie/flamedb/database"
-
 	"github.com/go-openapi/loads"
 	"github.com/golang/mock/gomock"
+	"github.com/myzie/flamedb/database"
 	"github.com/myzie/flamedb/database/mock_database"
 	"github.com/myzie/flamedb/restapi"
 	"github.com/myzie/flamedb/restapi/operations"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,6 +26,7 @@ func TestServiceInit(t *testing.T) {
 	svc := New(Opts{API: getTestAPI()})
 	require.NotNil(t, svc)
 }
+
 func TestAccessKeyOK(t *testing.T) {
 
 	mockCtrl := gomock.NewController(t)
