@@ -42,6 +42,23 @@ func (r *Record) MustGetProperties() map[string]interface{} {
 	return props
 }
 
+// SetProperties sets the properites in JSONB format
+func (r *Record) SetProperties(properties map[string]interface{}) error {
+	propJSON, err := json.Marshal(properties)
+	if err != nil {
+		return err
+	}
+	r.Properties = postgres.Jsonb{RawMessage: json.RawMessage(propJSON)}
+	return nil
+}
+
+// MustSetProperties sets properties and panics if marshaling fails
+func (r *Record) MustSetProperties(properties map[string]interface{}) {
+	if err := r.SetProperties(properties); err != nil {
+		panic(err)
+	}
+}
+
 // BeforeSave is called to validate the Record before saving it to the database
 func (r *Record) BeforeSave() error {
 

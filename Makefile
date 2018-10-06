@@ -13,7 +13,11 @@ all:
 
 .PHONY: test
 test:
-	go test -v -cover ./...
+	go test -v -cover -coverprofile=coverage.out ./...
+
+.PHONY: coverage
+coverage:
+	go tool cover -html=coverage.out
 
 .PHONY: generate
 generate:
