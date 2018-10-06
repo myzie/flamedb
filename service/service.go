@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -134,14 +135,11 @@ func (svc *Service) createRecord(params records.CreateRecordParams, principal *m
 
 	input := *params.Body
 
-	userID := principal.UserID
-	if principal.IsService {
-		if params.XUserID == nil || *params.XUserID == "" {
-			return records.NewCreateRecordBadRequest().
-				WithPayload(newBadRequest("Service must specify X-User-Id"))
-		}
-		userID = *params.XUserID
-		log.WithField("user_id", userID).Info("Principal updated")
+	userID, err := getUserID(&params, principal)
+	if err != nil {
+		log.WithError(err).Error("Failed to get request user ID")
+		return records.NewCreateRecordBadRequest().
+			WithPayload(newBadRequest("Failed to get request user ID"))
 	}
 
 	if _, err := svc.flame.Get(database.Key{Path: *input.Path}); err == nil {
@@ -167,16 +165,6 @@ func (svc *Service) createRecord(params records.CreateRecordParams, principal *m
 }
 
 func (svc *Service) deleteRecord(params records.DeleteRecordParams, principal *models.Principal) middleware.Responder {
-
-	userID := principal.UserID
-	if principal.IsService {
-		if params.XUserID == nil || *params.XUserID == "" {
-			return records.NewDeleteRecordBadRequest().
-				WithPayload(newBadRequest("Service must specify X-User-Id"))
-		}
-		userID = *params.XUserID
-		log.WithField("user_id", userID).Info("Principal updated")
-	}
 
 	record, err := svc.flame.Get(database.Key{ID: params.RecordID})
 	if err != nil {
@@ -251,14 +239,11 @@ func (svc *Service) updateRecord(params records.UpdateRecordParams, principal *m
 
 	input := *params.Record
 
-	userID := principal.UserID
-	if principal.IsService {
-		if params.XUserID == nil || *params.XUserID == "" {
-			return records.NewUpdateRecordBadRequest().
-				WithPayload(newBadRequest("Service must specify X-User-ID"))
-		}
-		userID = *params.XUserID
-		log.WithField("user_id", userID).Info("Principal updated")
+	userID, err := getUserID(&params, principal)
+	if err != nil {
+		log.WithError(err).Error("Failed to get request user ID")
+		return records.NewUpdateRecordBadRequest().
+			WithPayload(newBadRequest("Failed to get request user ID"))
 	}
 
 	record, err := svc.flame.Get(database.Key{ID: params.RecordID})
@@ -279,6 +264,25 @@ func (svc *Service) updateRecord(params records.UpdateRecordParams, principal *m
 
 	return records.NewUpdateRecordOK().
 		WithPayload(newRecordOutput(record))
+}
+
+func getUserID(requestParams interface{}, principal *models.Principal) (string, error) {
+	// Handle the principal being a user
+	if !principal.IsService {
+		return principal.UserID, nil
+	}
+	// Handle the principal being an external service on behalf of a user.
+	// The request parameters struct must have an XUserID string pointer.
+	e := reflect.ValueOf(requestParams).Elem()
+	v := e.FieldByName("XUserID")
+	if v.IsValid() && !v.IsNil() {
+		userID, ok := v.Interface().(*string)
+		if !ok {
+			return "", errors.New("XUserID is invalid")
+		}
+		return *userID, nil
+	}
+	return "", errors.New("XUserID was not found")
 }
 
 func newRecordOutput(record *database.Record) *models.RecordOutput {
