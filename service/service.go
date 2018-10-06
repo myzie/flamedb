@@ -98,25 +98,18 @@ func (svc *Service) tokenAuth(tokenStr string) (*models.Principal, error) {
 	if svc.key == nil {
 		return nil, errors.New("No token verification key is configured")
 	}
-	principal, err := parseJWT(svc.key, tokenStr)
-	log.Infof("JWT principal: %+v", principal)
-	return principal, err
+	return parseJWT(svc.key, tokenStr)
 }
 
 func (svc *Service) basicAuth(keyID, keySecret string) (*models.Principal, error) {
 
-	log.Infof("basic auth: %s", keyID)
-
 	if svc.accessKeys == nil {
 		return nil, errors.New("Access key store is not configured")
 	}
-
 	accessKey, err := svc.accessKeys.Get(keyID)
 	if err != nil {
 		return nil, err
 	}
-	log.Infof("Access key: %+v", accessKey)
-
 	if accessKey.Compare(keySecret) != nil {
 		return nil, errors.New("Incorrect secret")
 	}
