@@ -138,10 +138,7 @@ func (svc *Service) createRecord(params records.CreateRecordParams, principal *m
 	if principal.IsService {
 		if params.XUserID == nil || *params.XUserID == "" {
 			return records.NewCreateRecordBadRequest().
-				WithPayload(&models.BadRequest{
-					ErrorType: "BadRequest",
-					Message:   "Service must specify X-User-ID",
-				})
+				WithPayload(newBadRequest("Service must specify X-User-Id"))
 		}
 		userID = *params.XUserID
 		log.WithField("user_id", userID).Info("Principal updated")
@@ -149,47 +146,24 @@ func (svc *Service) createRecord(params records.CreateRecordParams, principal *m
 
 	if _, err := svc.flame.Get(database.Key{Path: *input.Path}); err == nil {
 		return records.NewCreateRecordBadRequest().
-			WithPayload(&models.BadRequest{
-				ErrorType: "BadRequest",
-				Message:   "Record already exists at that path",
-			})
-	}
-
-	propJSON, err := json.Marshal(input.Properties)
-	if err != nil {
-		return records.NewCreateRecordBadRequest().
-			WithPayload(&models.BadRequest{
-				ErrorType: "ValidationError",
-				Message:   "Invalid properties JSON",
-			})
+			WithPayload(newBadRequest("Record already exists at that path"))
 	}
 
 	record := database.Record{
 		Path:       *input.Path,
 		CreatedBy:  userID,
 		UpdatedBy:  userID,
-		Properties: postgres.Jsonb{RawMessage: json.RawMessage(propJSON)},
+		Properties: jsonbProperties(input.Properties),
 	}
-	if err = svc.flame.Save(&record); err != nil {
+
+	if err := svc.flame.Save(&record); err != nil {
 		log.WithError(err).Info("Save error")
 		return records.NewCreateRecordInternalServerError().
-			WithPayload(&models.InternalServerError{
-				ErrorType: "InternalServerError",
-				Message:   "Failed to save record",
-			})
+			WithPayload(newServerError("Failed to save record"))
 	}
 
 	return records.NewCreateRecordOK().
-		WithPayload(&models.RecordOutput{
-			ID:         apiString(record.ID),
-			CreatedAt:  apiString(record.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:  apiString(record.CreatedBy),
-			UpdatedAt:  apiString(record.UpdatedAt.Format(time.RFC3339)),
-			UpdatedBy:  apiString(record.UpdatedBy),
-			Path:       apiString(record.Path),
-			Parent:     apiString(record.Parent),
-			Properties: input.Properties,
-		})
+		WithPayload(newRecordOutput(&record))
 }
 
 func (svc *Service) deleteRecord(params records.DeleteRecordParams, principal *models.Principal) middleware.Responder {
@@ -198,10 +172,7 @@ func (svc *Service) deleteRecord(params records.DeleteRecordParams, principal *m
 	if principal.IsService {
 		if params.XUserID == nil || *params.XUserID == "" {
 			return records.NewDeleteRecordBadRequest().
-				WithPayload(&models.BadRequest{
-					ErrorType: "BadRequest",
-					Message:   "Service must specify X-User-ID",
-				})
+				WithPayload(newBadRequest("Service must specify X-User-Id"))
 		}
 		userID = *params.XUserID
 		log.WithField("user_id", userID).Info("Principal updated")
@@ -209,24 +180,17 @@ func (svc *Service) deleteRecord(params records.DeleteRecordParams, principal *m
 
 	record, err := svc.flame.Get(database.Key{ID: params.RecordID})
 	if err != nil {
-		log.WithError(err).Info("Get error")
+		log.WithError(err).Error("Get error")
 		return records.NewDeleteRecordNotFound().
-			WithPayload(&models.NotFoundError{
-				ErrorType: "NotFound",
-				Message:   "Record not found",
-			})
+			WithPayload(newNotFoundError("Record not found"))
 	}
 
 	if err := svc.flame.Delete(record); err != nil {
-		log.WithError(err).Info("Delete error")
+		log.WithError(err).Error("Delete error")
 		return records.NewDeleteRecordInternalServerError().
-			WithPayload(&models.InternalServerError{
-				ErrorType: "InternalServerError",
-				Message:   "Failed to delete record",
-			})
+			WithPayload(newServerError("Failed to delete record"))
 	}
 
-	log.Printf("Record %s deleted by %s", record.ID, userID)
 	return records.NewDeleteRecordOK()
 }
 
@@ -234,55 +198,27 @@ func (svc *Service) getRecord(params records.GetRecordParams, principal *models.
 
 	record, err := svc.flame.Get(database.Key{ID: params.RecordID})
 	if err != nil {
-		log.WithError(err).Info("Get error")
 		return records.NewGetRecordNotFound().
-			WithPayload(&models.NotFoundError{
-				ErrorType: "NotFound",
-				Message:   "Record not found",
-			})
+			WithPayload(newNotFoundError("Record not found"))
 	}
 
 	return records.NewGetRecordOK().
-		WithPayload(&models.RecordOutput{
-			ID:         apiString(record.ID),
-			CreatedAt:  apiString(record.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:  apiString(record.CreatedBy),
-			UpdatedAt:  apiString(record.UpdatedAt.Format(time.RFC3339)),
-			UpdatedBy:  apiString(record.UpdatedBy),
-			Path:       apiString(record.Path),
-			Parent:     apiString(record.Parent),
-			Properties: record.MustGetProperties(),
-		})
+		WithPayload(newRecordOutput(record))
 }
 
 func (svc *Service) findRecord(params records.FindRecordParams, principal *models.Principal) middleware.Responder {
 
 	record, err := svc.flame.Get(database.Key{Path: params.Path})
 	if err != nil {
-		log.WithError(err).Info("Get error")
 		return records.NewFindRecordNotFound().
-			WithPayload(&models.NotFoundError{
-				ErrorType: "NotFound",
-				Message:   "Record not found",
-			})
+			WithPayload(newNotFoundError("Record not found"))
 	}
 
 	return records.NewFindRecordOK().
-		WithPayload(&models.RecordOutput{
-			ID:         apiString(record.ID),
-			CreatedAt:  apiString(record.CreatedAt.Format(time.RFC3339)),
-			CreatedBy:  apiString(record.CreatedBy),
-			UpdatedAt:  apiString(record.UpdatedAt.Format(time.RFC3339)),
-			UpdatedBy:  apiString(record.UpdatedBy),
-			Path:       apiString(record.Path),
-			Parent:     apiString(record.Parent),
-			Properties: record.MustGetProperties(),
-		})
+		WithPayload(newRecordOutput(record))
 }
 
 func (svc *Service) listRecords(params records.ListRecordsParams, principal *models.Principal) middleware.Responder {
-
-	log.Println("listRecords")
 
 	query := database.Query{
 		Offset:              getIntDefault(params.Offset, 0),
@@ -294,25 +230,17 @@ func (svc *Service) listRecords(params records.ListRecordsParams, principal *mod
 		OrderByProperty:     getStrDefault(params.OrderByProperty, ""),
 		OrderByPropertyDesc: getBoolDefault(params.OrderByPropertyDesc, false),
 	}
+
 	results, err := svc.flame.List(query)
 	if err != nil {
-		return records.NewListRecordsInternalServerError()
+		log.WithError(err).Error("List error")
+		return records.NewListRecordsInternalServerError().
+			WithPayload(newServerError("Failed to list records"))
 	}
 
 	items := make([]*models.RecordOutput, len(results))
 	for i, r := range results {
-		createdAt := r.CreatedAt.Format(time.RFC3339)
-		updatedAt := r.UpdatedAt.Format(time.RFC3339)
-		items[i] = &models.RecordOutput{
-			ID:         apiString(r.ID),
-			Parent:     apiString(r.Parent),
-			Path:       apiString(r.Path),
-			CreatedAt:  apiString(createdAt),
-			CreatedBy:  apiString(r.CreatedBy),
-			UpdatedAt:  apiString(updatedAt),
-			UpdatedBy:  apiString(r.UpdatedBy),
-			Properties: r.MustGetProperties(),
-		}
+		items[i] = newRecordOutput(r)
 	}
 
 	return records.NewListRecordsOK().
@@ -327,43 +255,34 @@ func (svc *Service) updateRecord(params records.UpdateRecordParams, principal *m
 	if principal.IsService {
 		if params.XUserID == nil || *params.XUserID == "" {
 			return records.NewUpdateRecordBadRequest().
-				WithPayload(&models.BadRequest{
-					ErrorType: "BadRequest",
-					Message:   "Service must specify X-User-ID",
-				})
+				WithPayload(newBadRequest("Service must specify X-User-ID"))
 		}
 		userID = *params.XUserID
 		log.WithField("user_id", userID).Info("Principal updated")
 	}
 
-	propJSON, err := json.Marshal(input.Properties)
-	if err != nil {
-		return records.NewUpdateRecordBadRequest().
-			WithPayload(&models.BadRequest{
-				ErrorType: "ValidationError",
-				Message:   "Invalid properties JSON",
-			})
-	}
-
 	record, err := svc.flame.Get(database.Key{ID: params.RecordID})
 	if err != nil {
+		msg := fmt.Sprintf("Record with ID %s was not found", params.RecordID)
 		return records.NewUpdateRecordNotFound().
-			WithPayload(&models.NotFoundError{
-				ErrorType: "NotFound",
-				Message:   fmt.Sprintf("Record with ID %s was not found", params.RecordID),
-			})
+			WithPayload(newNotFoundError(msg))
 	}
 
-	record.Properties = postgres.Jsonb{RawMessage: json.RawMessage(propJSON)}
+	record.Properties = jsonbProperties(input.Properties)
+	record.UpdatedBy = userID
+
 	if err = svc.flame.Save(record); err != nil {
+		log.WithError(err).Error("Save error")
 		return records.NewUpdateRecordInternalServerError().
-			WithPayload(&models.InternalServerError{
-				ErrorType: "InternalServerError",
-				Message:   "Failed to update record",
-			})
+			WithPayload(newServerError("Failed to update record"))
 	}
 
-	return records.NewUpdateRecordOK().WithPayload(&models.RecordOutput{
+	return records.NewUpdateRecordOK().
+		WithPayload(newRecordOutput(record))
+}
+
+func newRecordOutput(record *database.Record) *models.RecordOutput {
+	return &models.RecordOutput{
 		ID:         apiString(record.ID),
 		CreatedAt:  apiString(record.CreatedAt.Format(time.RFC3339)),
 		CreatedBy:  apiString(record.CreatedBy),
@@ -371,8 +290,29 @@ func (svc *Service) updateRecord(params records.UpdateRecordParams, principal *m
 		UpdatedBy:  apiString(record.UpdatedBy),
 		Path:       apiString(record.Path),
 		Parent:     apiString(record.Parent),
-		Properties: input.Properties,
-	})
+		Properties: record.MustGetProperties(),
+	}
+}
+
+func jsonbProperties(properties map[string]interface{}) postgres.Jsonb {
+	propJSON, err := json.Marshal(properties)
+	if err != nil {
+		// Should not happen since these properties were unmarshaled from JSON
+		panic(fmt.Sprintf("Failed to marshal properties: %s", err.Error()))
+	}
+	return postgres.Jsonb{RawMessage: json.RawMessage(propJSON)}
+}
+
+func newBadRequest(msg string) *models.BadRequest {
+	return &models.BadRequest{ErrorType: "BadRequest", Message: msg}
+}
+
+func newServerError(msg string) *models.InternalServerError {
+	return &models.InternalServerError{ErrorType: "InternalServerError", Message: msg}
+}
+
+func newNotFoundError(msg string) *models.NotFoundError {
+	return &models.NotFoundError{ErrorType: "NotFound", Message: msg}
 }
 
 func getStrDefault(s *string, def string) string {
